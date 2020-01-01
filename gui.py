@@ -429,7 +429,7 @@ class app(Tk):
     def new_task_event(self):
         istoday = False 
         print(bool(self.stick_new.get()))
-        if datetime.date.fromisoformat(self.calendar_start.get_date()) == datetime.date.today() and bool(self.stick_new.get()):
+        if datetime.date.fromisoformat(self.calendar_start.get_date()) == datetime.date.today() and  datetime.date.fromisoformat(self.calendar_due.get_date()) == datetime.date.today():
             istoday = True
             print("today")
         tags = []
