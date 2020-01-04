@@ -7,13 +7,13 @@ import json
 version = "1.0.0"
 
 class Activity:
-    def __init__(self, description):
+    def __init__(self, description=""):
         super().__init__()
         self.date = datetime.date.today()
         self.description = description
 
 class Schedule:
-    def __init__(self,start_date, hour: int, is_today: bool=False, is_sticked: bool=False):
+    def __init__(self,start_date="2000-01-01", hour="1", is_today=False, is_sticked=False):
         super().__init__()
         self.start_date = datetime.date.fromisoformat(start_date)
         self.is_sticked = is_sticked
@@ -22,7 +22,7 @@ class Schedule:
         self.rescheduled = None
 
 class Task:
-    def __init__(self, name: str, description: str, start_date, due_date, hour: int, priority=1, is_today: bool=False, tags=[], is_sticked: bool=False) :
+    def __init__(self, name="", description="", start_date="2000-01-01", due_date="2000-01-01", hour=1, priority=1, is_today=False, tags=[], is_sticked=False) :
         super().__init__()
         self.name = name
         self.creation_date = datetime.date.today()
@@ -106,25 +106,28 @@ class Task:
         }
 
 class container:
-    def __init__(self):
+    def __init__(self,task_list=[],day_tasks_list=[]):
         super().__init__()
-        self.task_list = []
-        self.day_tasks_list = []
-        self.old_task_list = []
+        self.task_list = task_list
+        self.day_tasks_list = day_tasks_list
         self.today: datetime.date = datetime.date.today()
         self.version = version
-    
-    def save(self):
-        with open("db","bw") as db:
-            pickle.dump(self, db)
 
-class TaskContainer(container):
+class TaskContainer():
     def __init__(self):
         super().__init__()
+        # default values
         self.old_list = []
+        self.day_tasks_list = []
+        self.today = datetime.date.today()
+        self.task_list = []
+
+        # load history
         if path.exists("./old"):
             with open("old","rb") as db_old:
                 self.old_list = pickle.load(db_old)
+        
+        # load the data
         if path.exists("./db"):
             with open("db","rb") as db:
                 db = pickle.load(db)
@@ -132,13 +135,21 @@ class TaskContainer(container):
                 self.day_tasks_list = db.day_tasks_list
                 self.today = db.today
                 self.task_list = db.task_list
+        
+        #check if it needs a refresh
         if datetime.date.today() != self.today:
             self._del_completed_task()
             self.today = datetime.date.today()
             self._refresh_day_tasks()
             self.save()
-                
+
+    def save(self):
+        with open("db","bw") as db:
+            c = container(self.task_list,self.day_tasks_list)
+            pickle.dump(c, db)
+
     def _del_completed_task(self):
+        # iterate throught all task on task list and if it find some completed task move them on history
         count_pop = 0
         old_task_list = []
         for taskid in range(len(self.task_list)):
@@ -146,6 +157,8 @@ class TaskContainer(container):
                 old_task_list.append(self.task_list[taskid-count_pop])
                 self.task_list.pop(taskid-count_pop)
                 count_pop += 1
+
+        # if there are some new completed task save the updated history
         if len(old_task_list) > 0:
             self.__save_old__(old_task_list)
 
@@ -156,10 +169,9 @@ class TaskContainer(container):
 
     def add_task(self, task: Task):
         self.task_list.append(task)
-        if task.schedule.is_today:
-            self.day_tasks_list.append(task)
         self.task_list.sort()
-        if self._calc_hcount() <= 7:
+        hcalc = self._calc_hcount()
+        if task.schedule.is_today or ( hcalc < 42 and hcalc + task.schedule.hour < 42 ):
             self._refresh_day_tasks()
 
     def _calc_hcount(self):
@@ -176,7 +188,7 @@ class TaskContainer(container):
                 if task.get_priority() == 0 or task.get_priority() == 1:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour             
-                elif hcount + task.schedule.hour <= 42:
+                elif hcount + task.schedule.hour < 42:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour
 

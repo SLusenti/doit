@@ -45,9 +45,10 @@ class app(Tk):
 
         if len(self.tcont.task_list) > 0:
             self.fetch_list()
-            self.fetch_activities(self.tcont.day_tasks_list[0])
-            self.update_task_frame(self.list_day)
-            self.task_frame.pack(fill=BOTH, expand=True)
+            if len(self.tcont.day_tasks_list) > 0:
+                self.fetch_activities(self.tcont.day_tasks_list[0])
+                self.update_task_frame(self.list_day)
+                self.task_frame.pack(fill=BOTH, expand=True)
         
         if len(self.tcont.old_list) > 0:
             self.fetch_old()
@@ -61,160 +62,169 @@ class app(Tk):
     def drow_panel(self):
         self.pw = ttk.PanedWindow(self, orient=HORIZONTAL)
         self.pw.pack(fill=BOTH, expand=True)
-        self.list_frame = ttk.Frame(self.pw,width=200, height=300,relief=SUNKEN)
-        self.main_frame = ttk.Frame(self.pw,width=200, height=300,relief=SUNKEN)
+        self.list_frame = ttk.Frame(self.pw,width=150, height=300,relief=SUNKEN)
+        self.main_frame = ttk.Frame(self.pw,width=150, height=300,relief=SUNKEN)
         self.pw.add(self.list_frame,weight=1)
-        self.pw.add(self.main_frame,weight=3)
+        self.pw.add(self.main_frame,weight=6)
     
     def drow_complete_frame(self):
         self.complete_frame =  ttk.Frame(self.main_frame)
 
         self.title_complete_string = StringVar()
         self.title_complete_string.set("Completing task: {}")
-        title_complete_label = Entry(self.complete_frame, textvariable=self.title_complete_string ,font="Keraleeyam-Regular 20 bold",bd=0,state="readonly", justify=CENTER)
+        title_complete_label = Entry(self.complete_frame, textvariable=self.title_complete_string ,font="Keraleeyam-Regular 16 bold",bd=0,state="readonly", justify=CENTER)
         
-        comment_label = Label(self.complete_frame,text="Comment" ,font="LiberationMono-Bold 12")
-        self.complete_text = Text(self.complete_frame,height=10,font="FreeMono 12")
+        comment_label = Label(self.complete_frame,text="Comment" ,font="LiberationMono-Bold 10")
+        self.complete_text = Text(self.complete_frame,height=10,font="FreeMono 10")
 
         cancel_button = ttk.Button(self.complete_frame ,text="cancel", command=self.cancel_event)
         complete_button = ttk.Button(self.complete_frame ,text="Complete", command=self.complete_task_event)
         
-        title_complete_label.pack(fill=BOTH, padx=10,pady=30)
+        title_complete_label.pack(fill=BOTH, padx=10,pady=15)
         comment_label.pack(fill=BOTH,padx=10)
-        self.complete_text.pack(pady=20, fill=X)
+        self.complete_text.pack(pady=5, fill=X)
 
-        complete_button.pack(side=RIGHT, pady=50)
-        cancel_button.pack(side=RIGHT, pady=50,padx=40)
+        complete_button.pack(side=RIGHT, pady=15)
+        cancel_button.pack(side=RIGHT, pady=15,padx=40)
 
     def drow_reschedule_frame(self):
         self.reschedule_frame = ttk.Frame(self.main_frame)
 
         self.title_reschedule_string = StringVar()
         self.title_reschedule_string.set("Reschedule task: {}")
-        title_reschedule_label = Entry(self.reschedule_frame, textvariable=self.title_reschedule_string ,font="Keraleeyam-Regular 20 bold",bd=0,state="readonly", justify=CENTER)
+        title_reschedule_label = Entry(self.reschedule_frame, textvariable=self.title_reschedule_string ,font="Keraleeyam-Regular 16 bold",bd=0,state="readonly", justify=CENTER)
         
-        activity_label = Label(self.reschedule_frame,text="Description of the WIP" ,font="LiberationMono-Bold 12")
-        self.reschedule_text = Text(self.reschedule_frame,height=10,font="FreeMono 12")
+        activity_label = Label(self.reschedule_frame,text="Description of the WIP" ,font="LiberationMono-Bold 10")
+        self.reschedule_text = Text(self.reschedule_frame,height=10,font="FreeMono 10")
 
         calendar_frame = ttk.Frame(self.reschedule_frame)
         calendar_frame.grid_rowconfigure(0, weight=1)
         calendar_frame.grid_columnconfigure(0, weight=1)
 
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        calendar_label = Label(calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 12")
+        calendar_label = Label(calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 10")
         self.calendar = Calendar(calendar_frame, date_pattern="y-mm-dd",
-                   font="Arial 14", selectmode='day',
+                   font="Arial 8", selectmode='day',
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
-        hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 12")
+        hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
         hour_box = Spinbox(calendar_frame, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
-        self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 12")
+        self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
-        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 12", variable=self.stick)
+        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
         
         calendar_label.grid(column=0,row=0)
         self.calendar.grid(column=0,row=1)
         hour_label.grid(column=1,row=0, rowspan=3, padx=50)
         hour_box.grid(column=2,row=0,rowspan=3)
         self.hour_label.grid(column=3,row=0,rowspan=3,padx=5)
-        stick_box.grid(column=0,row=2, pady=20)
+        stick_box.grid(column=0,row=2, pady=5)
 
         cancel_button = ttk.Button(self.reschedule_frame ,text="cancel", command=self.cancel_event)
         reschedule_button = ttk.Button(self.reschedule_frame ,text="Reschedule", command=self.reschedule_task_event)
 
-        title_reschedule_label.pack(pady=30,fill=X)
+        title_reschedule_label.pack(pady=15,fill=X)
         activity_label.pack()
-        self.reschedule_text.pack(pady=20, fill=X)
+        self.reschedule_text.pack(pady=5, fill=X)
         calendar_frame.pack()
-        reschedule_button.pack(side=RIGHT, pady=50)
-        cancel_button.pack(side=RIGHT, pady=50,padx=40)
+        reschedule_button.pack(side=RIGHT, pady=15)
+        cancel_button.pack(side=RIGHT, pady=15,padx=40)
 
     def drow_new_task_frame(self):
         self.new_task_frame = ttk.Frame(self.main_frame)
-        title_label = Label(self.new_task_frame,text="New Task" ,font="Keraleeyam-Regular 20 bold")
-
-        name_label = Label(self.new_task_frame,text="task name" ,font="Keraleeyam-Regular 12")
+        title_label = Label(self.new_task_frame,text="New Task" ,font="Keraleeyam-Regular 16 bold")
+        
+        container_frame = ttk.Frame(self.new_task_frame)
+        name_label = Label(container_frame,text="task name" ,font="Keraleeyam-Regular 10")
         self.name_new_task_string = StringVar()
         self.name_new_task_string.set("")
-        name_new_task_entry = Entry(self.new_task_frame, textvariable=self.name_new_task_string ,font="Keraleeyam-Regular 12")
+        name_new_task_entry = Entry(container_frame, textvariable=self.name_new_task_string ,font="Keraleeyam-Regular 10")
 
         tags_frame = ttk.Frame(self.new_task_frame)
-        tags_label = Label(tags_frame,text="tags" ,font="Keraleeyam-Regular 12")
+        tags_label = Label(tags_frame,text="tags" ,font="Keraleeyam-Regular 10")
         self.tags_new_task_string = StringVar()
         self.tags_new_task_string.set("")
-        tags_new_task_entry = Entry(tags_frame, textvariable=self.tags_new_task_string ,font="Keraleeyam-Regular 12")
+        tags_new_task_entry = Entry(tags_frame, textvariable=self.tags_new_task_string ,font="Keraleeyam-Regular 10")
         tags_new_task_entry.bind("<Return>", self.add_new_tag)
         self.tags_container = ttk.Frame(tags_frame)
         tags_label.grid(column=0,row=0)
         tags_new_task_entry.grid(column=1,row=0)
         self.tags_container.grid(column=2,row=0)
         
-        description_new_label = Label(self.new_task_frame,text="Description" ,font="LiberationMono-Bold 12")
-        self.description_new_text = Text(self.new_task_frame,height=15,font="FreeMono 12")
+        description_new_label = Label(container_frame,text="Description" ,font="LiberationMono-Bold 10")
+        self.description_new_text = Text(container_frame,font="FreeMono 10")
 
-        calendar_frame = ttk.Frame(self.new_task_frame)
+        calendar_frame = ttk.Frame(container_frame)
         calendar_frame.grid_rowconfigure(0, weight=1)
         calendar_frame.grid_columnconfigure(0, weight=1)
 
         day = datetime.date.today()
-        calendar_start_label = Label(calendar_frame,text="start date" ,font="LiberationMono-Bold 12")
+        calendar_start_label = Label(calendar_frame,text="start date" ,font="LiberationMono-Bold 10")
         self.calendar_start = Calendar(calendar_frame, date_pattern="y-mm-dd",
-                   font="Arial 14", selectmode='day',
+                   font="Arial 8", selectmode='day',
                    cursor="hand1", year=day.year, month=day.month, day=day.day)
-        calendar_end_label = Label(calendar_frame,text="due date" ,font="LiberationMono-Bold 12")
+        calendar_end_label = Label(calendar_frame,text="due date" ,font="LiberationMono-Bold 10")
         self.calendar_due = Calendar(calendar_frame, date_pattern="y-mm-dd",
-                   font="Arial 14", selectmode='day',
+                   font="Arial 8", selectmode='day',
                    cursor="hand1", year=day.year, month=day.month, day=day.day)
-        hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 12")
-        self.hour_new_string = StringVar() 
-        hour_box = Spinbox(calendar_frame, from_=1, to=36, textvariable=self.hour_new_string, command=self.update_label_new_time)
-        self.hour_new_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 12")
-        priority_new_label = Label(calendar_frame,text="priority 1-5 (1 is the highest)" ,font="LiberationMono-Bold 12")
-        self.priority_new_string = StringVar() 
-        priority_new_box = Spinbox(calendar_frame, from_=1, to=5, textvariable=self.priority_new_string)
         self.stick_new = IntVar()
-        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 12", variable=self.stick_new)
+        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick_new)
         
-        calendar_start_label.grid(column=0,row=0)
-        self.calendar_start.grid(column=0,row=1)
-        calendar_end_label.grid(column=2,row=0)
-        self.calendar_due.grid(column=2,row=1)
-        stick_box.grid(column=0,row=2, pady=20)
-        hour_label.grid(column=0,row=3, padx=50)
-        hour_box.grid(column=1,row=3)
-        self.hour_new_label.grid(column=2,row=3,padx=5)
-        priority_new_label.grid(column=0,row=4)
-        priority_new_box.grid(column=1,row=4)
+        label_frame = ttk.Frame(self.new_task_frame)
+        label_frame.grid_rowconfigure(0, weight=1)
+        label_frame.grid_columnconfigure(0, weight=1)
+
+        hour_label = Label(label_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
+        self.hour_new_string = StringVar() 
+        hour_box = Spinbox(label_frame,width=3, from_=1, to=36, textvariable=self.hour_new_string, command=self.update_label_new_time)
+        self.hour_new_label = Label(label_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        priority_new_label = Label(label_frame,text="priority 1-5 (1 is the highest)" ,font="LiberationMono-Bold 10")
+        self.priority_new_string = StringVar() 
+        priority_new_box = Spinbox(label_frame,width=3, from_=1, to=5, textvariable=self.priority_new_string)
+        
+        calendar_start_label.grid(column=0,row=0,pady=5)
+        self.calendar_start.grid(column=0,row=1,pady=5)
+        calendar_end_label.grid(column=0,row=2,pady=5)
+        self.calendar_due.grid(column=0,row=3,pady=5)
+        stick_box.grid(column=0,row=4,pady=5)
+
+        hour_label.grid(column=0,row=0,pady=5)
+        hour_box.grid(column=1,row=0,pady=5)
+        self.hour_new_label.grid(column=2,row=0,pady=5)
+        priority_new_label.grid(column=0,row=1,pady=5)
+        priority_new_box.grid(column=1,row=1,pady=5)
 
         cancel_button = ttk.Button(self.new_task_frame ,text="cancel", command=self.cancel_event)
         create_button = ttk.Button(self.new_task_frame ,text="create", command=self.new_task_event)
 
-        title_label.pack(pady=30,fill=X)
-        name_label.pack(pady=5,fill=X, padx=30)
-        name_new_task_entry.pack(pady=5,fill=X, padx=30)
-        description_new_label.pack()
-        self.description_new_text.pack(pady=5, fill=X)
+        title_label.pack(pady=15,fill=X)
+        container_frame.pack(fill=X,expand=True)
+        name_label.grid(column=1,row=0,padx=15)
+        name_new_task_entry.grid(column=1,row=1,padx=15,stick=N+E+S+W)
+        description_new_label.grid(column=1,row=2,padx=15)
+        self.description_new_text.grid(column=1,row=3,stick=N+E+S+W,padx=15)
+        calendar_frame.grid(column=0,row=0, rowspan=5,padx=15)
         tags_frame.pack(padx=30,pady=10,fill=X)
-        calendar_frame.pack()
-        create_button.pack(side=RIGHT, pady=50)
-        cancel_button.pack(side=RIGHT, pady=50,padx=40)
+        label_frame.pack(pady=5,padx=30)
+        create_button.pack(side=RIGHT, pady=15)
+        cancel_button.pack(side=RIGHT, pady=15,padx=40)
 
     
     def drow_task_frame(self):
         self.task_frame = ttk.Frame(self.main_frame)
         self.title_string = StringVar()
         self.title_string.set("Empty")
-        title_label = Entry(self.task_frame , textvariable=self.title_string,font="Keraleeyam-Regular 24 bold",bd=0,state="readonly", justify=CENTER)
+        title_label = Entry(self.task_frame , textvariable=self.title_string,font="Keraleeyam-Regular 16 bold",bd=0,state="readonly", justify=CENTER)
         self.id_string = StringVar()
         self.id_string.set("id")
         id_label = Entry(self.task_frame , textvariable=self.id_string,font="FreeMono 10",bd=0,state="readonly", justify=CENTER)
 
         ldabel_text_frame = Frame(self.task_frame )
-        self.label_created = Label(ldabel_text_frame,text="created: {}",font="LiberationMono-Bold 12")
-        self.label_due = Label(ldabel_text_frame,text="due date: {}",font="LiberationMono-Bold 12")
-        self.label_state = Label(ldabel_text_frame,text="state: {}",font="LiberationMono-Bold 12")
-        self.label_priority = Label(ldabel_text_frame,text="priority: {}",font="LiberationMono-Bold 12")
-        self.label_time = Label(ldabel_text_frame,text="Time to dedicate: {}",font="LiberationMono-Bold 12")
+        self.label_created = Label(ldabel_text_frame,text="created: {}",font="LiberationMono-Bold 10")
+        self.label_due = Label(ldabel_text_frame,text="due date: {}",font="LiberationMono-Bold 10")
+        self.label_state = Label(ldabel_text_frame,text="state: {}",font="LiberationMono-Bold 10")
+        self.label_priority = Label(ldabel_text_frame,text="priority: {}",font="LiberationMono-Bold 10")
+        self.label_time = Label(ldabel_text_frame,text="Time to dedicate: {}",font="LiberationMono-Bold 10")
         self.label_created.grid(column=0, row=0, padx=20)
         self.label_due.grid(column=1, row=0, padx=20)
         self.label_state.grid(column=2, row=0, padx=20)
@@ -223,7 +233,7 @@ class app(Tk):
 
 
         tags_frame = ttk.Frame(self.task_frame)
-        tags_label = Label(tags_frame,text="tags: " ,font="Keraleeyam-Regular 12")
+        tags_label = Label(tags_frame,text="tags: " ,font="Keraleeyam-Regular 10")
         self.tags_frame = ttk.Frame(tags_frame)
         tags_label.grid(column=0,row=0)
         self.tags_frame.grid(column=1,row=0)
@@ -243,7 +253,7 @@ class app(Tk):
         description_text_frame = Frame(tabs)
         description_text_frame.grid_rowconfigure(0, weight=1)
         description_text_frame.grid_columnconfigure(0, weight=1)
-        self.description_text = Text(description_text_frame,font="FreeMono 12",wrap=WORD)
+        self.description_text = Text(description_text_frame,font="FreeMono 10",wrap=WORD)
         self.description_text.insert('1.0', "description")
         self.description_text.bind('<FocusOut>',self.save_text)
         self.description_text.bind('<KeyPress>',self.save_new_desc)
@@ -257,8 +267,8 @@ class app(Tk):
         self.complete_task_frame = ttk.Frame(self.task_frame)
         self.complete_task_frame.grid_rowconfigure(0, weight=1)
         self.complete_task_frame.grid_columnconfigure(0, weight=1)
-        self.label_completed = Label(self.complete_task_frame,text="completed at: 0000-00-00",font="LiberationMono-Bold 12")
-        self.description_completed_text = Text(self.complete_task_frame,font="FreeMono 12", height=10,wrap=WORD)
+        self.label_completed = Label(self.complete_task_frame,text="completed at: 0000-00-00",font="LiberationMono-Bold 10")
+        self.description_completed_text = Text(self.complete_task_frame,font="FreeMono 10", height=10,wrap=WORD)
         self.description_completed_text.insert("1.0","completed")
         self.description_completed_text.config( state=DISABLED)
         self.label_completed.pack()
@@ -266,18 +276,17 @@ class app(Tk):
 
         self.reschedule_button = ttk.Button(self.task_frame ,text="Reschedule", command=self.reschedule_event)
         self.complete_button = ttk.Button(self.task_frame ,text="Complete", command=self.complete_event)
-
-        title_label.pack(fill=BOTH, padx=10, pady=5)
-        id_label.pack(fill=BOTH, padx=10, pady=10)
-        ldabel_text_frame.pack(padx=30,pady=5)
-        #self.label_time.pack(padx=10,fill=X)
-        tags_frame.pack(fill=X ,padx=100,pady=20)
-        main_task_frame.pack(fill=BOTH, expand=True, padx=100, pady=10)
+        
+        title_label.pack(fill=X,pady=5,padx=10)
+        id_label.pack(fill=X,pady=5,padx=10)
+        ldabel_text_frame.pack(pady=5,padx=10)
+        tags_frame.pack(fill=X,pady=5,padx=100)
+        main_task_frame.pack(fill=BOTH, expand=True, padx=100, pady=5)
         self.description_text.grid(column=0, row=0, stick="news")
         scroll.grid(column=1, row=0, stick="news")
 
-        self.reschedule_button.pack(side=RIGHT, pady=50,padx=40)
-        self.complete_button.pack(side=RIGHT, pady=50)        
+        self.reschedule_button.pack(side=RIGHT, pady=15,padx=40)
+        self.complete_button.pack(side=RIGHT, pady=15)        
 
     def drow_list(self):
         self.tabs = ttk.Notebook(self.list_frame)
@@ -296,8 +305,8 @@ class app(Tk):
         for w in self.activity_frame_main.winfo_children():
             w.destroy()
         for activity in task.activities:
-            ttk.Label(self.activity_frame_main,text="date: {}".format(activity.date),font="LiberationMono-Bold 12",padding="0 25 0 10").pack(fill=X, padx=10)
-            DText(self.activity_frame_main,activity.description,font="FreeMono 12",wrap=WORD).pack(fill=X,padx=10)
+            ttk.Label(self.activity_frame_main,text="date: {}".format(activity.date),font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
+            DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10)
 
     def add_new_tag(self,event):
         TagLabel(self.tags_container,text=self.tags_new_task_string.get(),bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
@@ -344,14 +353,20 @@ class app(Tk):
     def update_main_frame_day(self,event):
         widget = event.widget
         self.update_task_frame(widget)
+        for w in self.main_frame.winfo_children():
+            w.pack_forget()
+        self.task_frame.pack(fill=BOTH, expand=True)
 
-    def update_task_frame(self,widget):
+    def update_task_frame(self,widget=None,task=None):
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
-        if len(widget.curselection()) > 0:
-            if self.tabs.index(self.tabs.select()) == 0:
-                self.current_task = self.tcont.day_tasks_list[widget.curselection()[0]] 
-            elif self.tabs.index(self.tabs.select()) == 1:
-                self.current_task = self.tcont.task_list[widget.curselection()[0]]
+        if len(widget.curselection()) > 0 or task:
+            if len(widget.curselection()):
+                if self.tabs.index(self.tabs.select()) == 0:
+                    self.current_task = self.tcont.day_tasks_list[widget.curselection()[0]] 
+                elif self.tabs.index(self.tabs.select()) == 1:
+                    self.current_task = self.tcont.task_list[widget.curselection()[0]]
+            else:
+                self.current_task = task
             self.title_string.set(self.current_task.name)
             self.id_string.set(self.current_task.id)
             self.description_text.config(state=NORMAL)
@@ -381,8 +396,8 @@ class app(Tk):
                 self.complete_button.pack(side=RIGHT, pady=50)
 
             self.fetch_activities(self.current_task)        
-            if self.current_task.get_status() == "NEXT":
-                self.label_state.config(text="state: NEXT \u2192 {}".format(str(self.current_task.schedule.start_date)))
+            if self.current_task.get_status() == "NEXT" or self.current_task.get_status() == "PENDING":
+                self.label_state.config(text="state: {} \u2192 {}".format(self.current_task.get_status(),str(self.current_task.schedule.start_date)))
             else:
                 self.label_state.config(text="state: {}".format(self.current_task.get_status()))
             self.label_created.config(text="created: {}".format(str(self.current_task.creation_date)))
@@ -428,10 +443,8 @@ class app(Tk):
     
     def new_task_event(self):
         istoday = False 
-        print(bool(self.stick_new.get()))
         if datetime.date.fromisoformat(self.calendar_start.get_date()) == datetime.date.today() and  datetime.date.fromisoformat(self.calendar_due.get_date()) == datetime.date.today():
             istoday = True
-            print("today")
         tags = []
         for w in self.tags_container.winfo_children():
             tags.append(w.get_text())
@@ -450,7 +463,7 @@ class app(Tk):
         self.fetch_list()
         self.new_task_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
-        self.update_task_frame(widget)     
+        self.update_task_frame(task=self.tcont.task_list[-1])     
         self.task_frame.pack(fill=BOTH, expand=True)
 
     def reschedule_event(self):
