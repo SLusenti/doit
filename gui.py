@@ -33,7 +33,7 @@ class app(Tk):
     def __init__(self, screenName=None, baseName=None, className="Doit!", useTk=1, sync=0, use=None):
         super().__init__(screenName=screenName, baseName=baseName, className=className, useTk=useTk, sync=sync, use=use)
         self.tcont = TaskContainer()
-        #self.tcont.today = datetime.date.fromisoformat("2019-12-30") # enable just for test/debugging purpose
+        #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
         self.current_task = None
         self.drow_menu_frame()
         self.drow_panel()
@@ -108,7 +108,7 @@ class app(Tk):
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
         hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
-        hour_box = Spinbox(calendar_frame, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
+        hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
         self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
         stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
@@ -135,6 +135,8 @@ class app(Tk):
         title_label = Label(self.new_task_frame,text="New Task" ,font="Keraleeyam-Regular 16 bold")
         
         container_frame = ttk.Frame(self.new_task_frame)
+        container_frame.grid_rowconfigure(0, weight=1)
+        container_frame.grid_columnconfigure(0, weight=1)
         name_label = Label(container_frame,text="task name" ,font="Keraleeyam-Regular 10")
         self.name_new_task_string = StringVar()
         self.name_new_task_string.set("")
@@ -169,6 +171,18 @@ class app(Tk):
                    cursor="hand1", year=day.year, month=day.month, day=day.day)
         self.stick_new = IntVar()
         stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick_new)
+
+        calendar_start_label.grid(column=0,row=0,pady=5)
+        self.calendar_start.grid(column=0,row=1,pady=5)
+        calendar_end_label.grid(column=0,row=2,pady=5)
+        self.calendar_due.grid(column=0,row=3,pady=5)
+        stick_box.grid(column=0,row=4,pady=5)
+
+        name_label.grid(column=0,row=0,padx=15)
+        name_new_task_entry.grid(column=0,row=1,padx=15,stick=N+E+S+W)
+        description_new_label.grid(column=0,row=2,padx=15)
+        self.description_new_text.grid(column=0,row=3,stick=N+E+S+W,padx=15)
+        calendar_frame.grid(column=1,row=0, rowspan=5,padx=15)
         
         label_frame = ttk.Frame(self.new_task_frame)
         label_frame.grid_rowconfigure(0, weight=1)
@@ -181,12 +195,6 @@ class app(Tk):
         priority_new_label = Label(label_frame,text="priority 1-5 (1 is the highest)" ,font="LiberationMono-Bold 10")
         self.priority_new_string = StringVar() 
         priority_new_box = Spinbox(label_frame,width=3, from_=1, to=5, textvariable=self.priority_new_string)
-        
-        calendar_start_label.grid(column=0,row=0,pady=5)
-        self.calendar_start.grid(column=0,row=1,pady=5)
-        calendar_end_label.grid(column=0,row=2,pady=5)
-        self.calendar_due.grid(column=0,row=3,pady=5)
-        stick_box.grid(column=0,row=4,pady=5)
 
         hour_label.grid(column=0,row=0,pady=5)
         hour_box.grid(column=1,row=0,pady=5)
@@ -199,11 +207,6 @@ class app(Tk):
 
         title_label.pack(pady=15,fill=X)
         container_frame.pack(fill=X,expand=True)
-        name_label.grid(column=1,row=0,padx=15)
-        name_new_task_entry.grid(column=1,row=1,padx=15,stick=N+E+S+W)
-        description_new_label.grid(column=1,row=2,padx=15)
-        self.description_new_text.grid(column=1,row=3,stick=N+E+S+W,padx=15)
-        calendar_frame.grid(column=0,row=0, rowspan=5,padx=15)
         tags_frame.pack(padx=30,pady=10,fill=X)
         label_frame.pack(pady=5,padx=30)
         create_button.pack(side=RIGHT, pady=15)
@@ -297,9 +300,9 @@ class app(Tk):
         self.list_all.bind("<<ListboxSelect>>",self.update_main_frame_day)
         self.list_old = Listbox(self.tabs, selectmode=SINGLE)
         self.list_old.bind("<<ListboxSelect>>",self.update_main_frame_day)
-        self.tabs.add(self.list_day,text="today")
-        self.tabs.add(self.list_all,text="all")
-        self.tabs.add(self.list_old,text="old")
+        self.tabs.add(self.list_day,text="Today")
+        self.tabs.add(self.list_all,text="WIP")
+        self.tabs.add(self.list_old,text="History")
 
     def fetch_activities(self,task):
         for w in self.activity_frame_main.winfo_children():
