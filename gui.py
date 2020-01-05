@@ -12,10 +12,10 @@ class TagLabel(Entry):
         self.v.set(text)
         self.config(state="readonly",textvariable=self.v, justify=CENTER)
         if clickdestroy:
-             self.bind("<Button-1>",self.destroy)
+             self.bind("<Double-Button-1>",self.destroy)
 
     def destroy(self,event=None):
-        return super().destroy()
+        super().destroy()
 
     def get_text(self):
         return self.v.get()
@@ -237,9 +237,15 @@ class app(Tk):
 
         tags_frame = ttk.Frame(self.task_frame)
         tags_label = Label(tags_frame,text="tags: " ,font="Keraleeyam-Regular 10")
+        self.tags_task_string = StringVar()
+        self.tags_task_string.set("")
+        self.tags_task_entry = Entry(tags_frame, textvariable=self.tags_task_string ,font="Keraleeyam-Regular 10")
+        self.tags_task_entry.bind("<Return>", self.add_task_tag)
         self.tags_frame = ttk.Frame(tags_frame)
+        self.tags_frame.bind("<Leave>",self.save_tags)
         tags_label.grid(column=0,row=0)
-        self.tags_frame.grid(column=1,row=0)
+        self.tags_task_entry.grid(column=1,row=0)
+        self.tags_frame.grid(column=2,row=0)
 
         main_task_frame = ttk.Frame(self.task_frame)
         tabs = ttk.Notebook(main_task_frame)
@@ -258,7 +264,7 @@ class app(Tk):
         description_text_frame.grid_columnconfigure(0, weight=1)
         self.description_text = Text(description_text_frame,font="FreeMono 10",wrap=WORD)
         self.description_text.insert('1.0', "description")
-        self.description_text.bind('<FocusOut>',self.save_text)
+        self.description_text.bind('<Leave>',self.save_event)
         self.description_text.bind('<KeyPress>',self.save_new_desc)
         scroll = Scrollbar(description_text_frame,orient=VERTICAL,command=self.description_text.yview)
         self.description_text.config(yscrollcommand=scroll.set)
@@ -312,17 +318,28 @@ class app(Tk):
             DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10)
 
     def add_new_tag(self,event):
-        TagLabel(self.tags_container,text=self.tags_new_task_string.get(),bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
+        if len(self.tags_container.winfo_children()) <= 5 :
+            TagLabel(self.tags_container,text=self.tags_new_task_string.get(),bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
+            self.tags_new_task_string.set("")
+    
+    def add_task_tag(self,event):
+        if len(self.tags_frame.winfo_children()) <= 5 :
+            TagLabel(self.tags_frame,text=self.tags_task_string.get(),bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
+            self.tags_task_string.set("")
+            self.save()
+
+    def save_event(self,event=None):
+        self.tcont.save()
+
+    def save_tags(self,event=None):
+        tags = []
+        for w in self.tags_frame.winfo_children():
+            tags.append(w.get_text())
+        self.current_task.tags = tags
+        self.tcont.save()
 
     def save_new_desc(self,event):
         self.current_task.description = self.description_text.get("1.0",END)
-
-    def save_text(self,event):
-        self.tcont.save()
-
-    def save_event(self):
-        self.current_task.description = self.description_text.get("1.0",END)
-        self.tcont.save()
 
     def update_label_reschedule_time(self):
         self.hour_label.config(text="{}h {}m".format(int(int(self.hour_string.get())/6),int(int(self.hour_string.get())%6*10)))
@@ -379,9 +396,6 @@ class app(Tk):
             for w in self.tags_frame.winfo_children():
                 w.destroy()
 
-            for tag in self.current_task.tags:
-                TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=False).pack(padx=5,side=LEFT)
-
             if self.current_task.get_status() == "COMPLETED":
                 self.description_text.config(state=DISABLED)
                 self.reschedule_button.pack_forget()
@@ -392,11 +406,18 @@ class app(Tk):
                 self.description_completed_text.config(state=DISABLED)
                 self.label_completed.config(text="completed at: {}".format(self.current_task.completed_date.isoformat()))
                 self.complete_task_frame.pack(fill=X,padx=100,pady=50) 
+                self.tags_task_entry.grid_forget()
+                for tag in self.current_task.tags:
+                    TagLabel(self.tags_frame,text=tag,bg="yellow").pack(padx=5,side=LEFT)
+
             else:
                 self.description_text.config(state=NORMAL)
                 self.complete_task_frame.pack_forget()
                 self.reschedule_button.pack(side=RIGHT, pady=50,padx=40)
                 self.complete_button.pack(side=RIGHT, pady=50)
+                self.tags_task_entry.grid(column=1,row=0)
+                for tag in self.current_task.tags:
+                    TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
 
             self.fetch_activities(self.current_task)        
             if self.current_task.get_status() == "NEXT" or self.current_task.get_status() == "PENDING":

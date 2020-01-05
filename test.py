@@ -2,7 +2,7 @@ from task import *
 import random
 import datetime
 
-base = "b"
+base = "c"
 
 def test_task_generation():
     tcont.today = datetime.date(2019,12,22)
