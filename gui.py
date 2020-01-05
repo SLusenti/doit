@@ -10,7 +10,7 @@ class TagLabel(Entry):
         super().__init__(master=master, *cnf, **kw)
         self.v = StringVar()
         self.v.set(text)
-        self.config(state="readonly",textvariable=self.v, justify=CENTER)
+        self.config(state="readonly",width=len(text)+1,textvariable=self.v, justify=CENTER)
         if clickdestroy:
              self.bind("<Double-Button-1>",self.destroy)
 
@@ -326,7 +326,7 @@ class app(Tk):
         if len(self.tags_frame.winfo_children()) <= 5 :
             TagLabel(self.tags_frame,text=self.tags_task_string.get(),bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
             self.tags_task_string.set("")
-            self.save()
+            self.save_tags()
 
     def save_event(self,event=None):
         self.tcont.save()
