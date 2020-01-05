@@ -31,7 +31,7 @@ class Task:
         self.schedule = Schedule(start_date,hour,is_today,is_sticked)
         self.description = description
         self.due_date = datetime.date.fromisoformat(due_date)
-        self.activities: list(activity) = []
+        self.activities = []
         self.tags = tags
         self.completed_date = None
         self.completed_comment = None

@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkcalendar import Calendar
 from task import *
 import datetime
+import filter_task as filtask
 
 
 class TagLabel(Entry):
@@ -35,6 +36,9 @@ class app(Tk):
         self.tcont = TaskContainer()
         #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
         self.current_task = None
+        self.task_list_old = []
+        self.task_list_wip = []
+        self.task_list_day = []
         self.drow_menu_frame()
         self.drow_panel()
         self.drow_list()
@@ -55,8 +59,23 @@ class app(Tk):
 
     def drow_menu_frame(self):
         menu_frame = Frame(self, bg="gray")
-        Button(menu_frame,text="new task", command=self.new_event).pack(side=LEFT, padx=5,pady=5)
-        Button(menu_frame,text="save", command=self.save_event).pack(side=LEFT, padx=5,pady=5)
+        button_frame = Frame(menu_frame, bg="gray")
+        Button(button_frame,text="new task", command=self.new_event).pack(side=LEFT, padx=5,pady=5)
+        Button(button_frame,text="save", command=self.save_event).pack(side=LEFT, padx=5,pady=5)
+        button_frame.pack(side=LEFT, padx=20)
+
+        filter_frame = Frame(menu_frame, bg="gray")
+        Label(filter_frame,text="Filter:" ,font="LiberationMono-Bold 10", bg="gray").pack(side=LEFT,padx=5,pady=5)
+        self.filter_mod_string = StringVar()
+        self.filter_mod_string.set("")
+        ttk.Combobox(filter_frame, justify=RIGHT ,textvariable=self.filter_mod_string, values=[mod for mod in filtask.map_filter.keys()], state="readonly").pack(side=LEFT,padx=5,pady=5)
+        self.filter_text_string = StringVar()
+        self.filter_text_string.set("")
+        filter_entry = Entry(filter_frame, width=70, textvariable=self.filter_text_string, font="LiberationMono-Bold 10")
+        filter_entry.bind("<Return>", self.fetch_list_event)
+        filter_entry.pack(side=LEFT,padx=5,pady=5)
+        filter_frame.pack(side=RIGHT, padx=40)
+
         menu_frame.pack(fill=X)
 
     def drow_panel(self):
@@ -347,9 +366,20 @@ class app(Tk):
     def update_label_new_time(self):
         self.hour_new_label.config(text="{}h {}m".format(int(int(self.hour_new_string.get())/6),int(int(self.hour_new_string.get())%6*10)))
 
+    def fetch_list_event(self,event):
+        self.fetch_old()
+        self.fetch_list()
+
     def fetch_old(self):
+        self.list_old.delete(0,END)
+
+        if self.filter_text_string.get() == "":
+            self.task_list_old = self.tcont.old_list
+        else:
+            self.task_list_old = filtask.map_filter[self.filter_mod_string.get()](self.tcont.old_list,self.filter_text_string.get())
+        
         count = 0
-        for item in self.tcont.old_list:
+        for item in self.task_list_old:
             self.list_old.insert(count,item.name)
             count += 1
 
@@ -357,13 +387,20 @@ class app(Tk):
         self.list_all.delete(0,END)
         self.list_day.delete(0,END)
 
+        if self.filter_text_string.get() == "":
+            self.task_list_day = self.tcont.day_tasks_list
+            self.task_list_wip = self.tcont.task_list
+        else:
+            self.task_list_day = filtask.map_filter[self.filter_mod_string.get()](self.tcont.day_tasks_list,self.filter_text_string.get())
+            self.task_list_wip = filtask.map_filter[self.filter_mod_string.get()](self.tcont.task_list,self.filter_text_string.get())
+
         count = 0
-        for item in self.tcont.day_tasks_list:
+        for item in self.task_list_day:
             self.list_day.insert(count,item.name)
             count += 1
 
         count = 0
-        for item in self.tcont.task_list:
+        for item in self.task_list_wip:
             self.list_all.insert(count, item.name)
             count += 1
 
@@ -382,9 +419,11 @@ class app(Tk):
         if len(widget.curselection()) > 0 or task:
             if len(widget.curselection()):
                 if self.tabs.index(self.tabs.select()) == 0:
-                    self.current_task = self.tcont.day_tasks_list[widget.curselection()[0]] 
+                    self.current_task = self.task_list_day[widget.curselection()[0]] 
                 elif self.tabs.index(self.tabs.select()) == 1:
-                    self.current_task = self.tcont.task_list[widget.curselection()[0]]
+                    self.current_task = self.task_list_wip[widget.curselection()[0]]
+                else:
+                    self.current_task = self.task_list_old[widget.curselection()[0]]
             else:
                 self.current_task = task
             self.title_string.set(self.current_task.name)
