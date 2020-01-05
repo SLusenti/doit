@@ -4,21 +4,21 @@ import task
 def name_contain(task_list: list, text: str) -> list:
     ret = []
     for task in task_list:
-        if text in task.name:
+        if text.lower() in task.name.lower():
             ret.append(task)
     return ret
 
 def description_contain(task_list: list, text: str) -> list:
     ret = []
     for task in task_list:
-        if text in task.description:
+        if text.lower() in task.description.lower():
             ret.append(task)
     return ret
 
 def id_contain(task_list: list, text: str) -> list:
     ret = []
     for task in task_list:
-        if text in str(task.id):
+        if text.lower() in str(task.id).lower():
             ret.append(task)
     return ret
 
@@ -26,7 +26,7 @@ def tags_contain(task_list: list, text: str) -> list:
     ret = []
     for task in task_list:
         for tag in task.tags:
-            if text in tag:
+            if text.lower() in tag.lower():
                 ret.append(task)
                 break    
     return ret
@@ -35,7 +35,7 @@ def activities_contain(task_list: list, text: str) -> list:
     ret = []
     for task in task_list:
         for act in task.activities:
-            if text in act.description:
+            if text.lower() in act.description.lower():
                 ret.append(task)
                 break    
     return ret
