@@ -103,8 +103,8 @@ class app(Tk):
         comment_label.pack(fill=BOTH,padx=10)
         self.complete_text.pack(pady=5, fill=X)
 
-        complete_button.pack(side=RIGHT, pady=15)
-        cancel_button.pack(side=RIGHT, pady=15,padx=40)
+        complete_button.pack(side=RIGHT, pady=10)
+        cancel_button.pack(side=RIGHT, pady=10,padx=40)
 
     def drow_reschedule_frame(self):
         self.reschedule_frame = ttk.Frame(self.main_frame)
@@ -147,8 +147,8 @@ class app(Tk):
         activity_label.pack()
         self.reschedule_text.pack(pady=5, fill=X)
         calendar_frame.pack()
-        reschedule_button.pack(side=RIGHT, pady=15)
-        cancel_button.pack(side=RIGHT, pady=15,padx=40)
+        reschedule_button.pack(side=RIGHT, pady=10)
+        cancel_button.pack(side=RIGHT, pady=10,padx=40)
 
     def drow_new_task_frame(self):
         self.new_task_frame = ttk.Frame(self.main_frame)
@@ -230,8 +230,8 @@ class app(Tk):
         container_frame.pack(fill=X,expand=True)
         tags_frame.pack(padx=30,pady=10,fill=X)
         label_frame.pack(pady=5,padx=30)
-        create_button.pack(side=RIGHT, pady=15)
-        cancel_button.pack(side=RIGHT, pady=15,padx=40)
+        create_button.pack(side=RIGHT, pady=10)
+        cancel_button.pack(side=RIGHT, pady=10,padx=40)
 
     
     def drow_task_frame(self):
@@ -315,17 +315,17 @@ class app(Tk):
         self.description_text.grid(column=0, row=0, stick="news")
         scroll.grid(column=1, row=0, stick="news")
 
-        self.reschedule_button.pack(side=RIGHT, pady=15,padx=40)
-        self.complete_button.pack(side=RIGHT, pady=15)        
+        self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
+        self.complete_button.pack(side=RIGHT, pady=1)        
 
     def drow_list(self):
         self.tabs = ttk.Notebook(self.list_frame)
         self.tabs.pack(fill=BOTH, expand=True)
-        self.list_day = Listbox(self.tabs, selectmode=SINGLE)
+        self.list_day = Listbox(self.tabs, selectmode=SINGLE,exportselection=False)
         self.list_day.bind("<<ListboxSelect>>",self.update_main_frame_day)
-        self.list_all = Listbox(self.tabs, selectmode=SINGLE)
+        self.list_all = Listbox(self.tabs, selectmode=SINGLE,exportselection=False)
         self.list_all.bind("<<ListboxSelect>>",self.update_main_frame_day)
-        self.list_old = Listbox(self.tabs, selectmode=SINGLE)
+        self.list_old = Listbox(self.tabs, selectmode=SINGLE,exportselection=False)
         self.list_old.bind("<<ListboxSelect>>",self.update_main_frame_day)
         self.tabs.add(self.list_day,text="Today")
         self.tabs.add(self.list_all,text="WIP")
@@ -412,10 +412,11 @@ class app(Tk):
 
     def update_main_frame_day(self,event):
         widget = event.widget
-        self.update_task_frame(widget)
-        for w in self.main_frame.winfo_children():
-            w.pack_forget()
-        self.task_frame.pack(fill=BOTH, expand=True)
+        if len(widget.curselection()) > 0:
+            self.update_task_frame(widget)
+            for w in self.main_frame.winfo_children():
+                w.pack_forget()
+            self.task_frame.pack(fill=BOTH, expand=True)
 
     def update_task_frame(self,widget=None,task=None):
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]

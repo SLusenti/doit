@@ -100,6 +100,7 @@ class Task:
                 "is_sticked" : self.schedule.is_sticked,
                 "is_today" : self.schedule.is_today,
                 "hour" : self.schedule.hour,
+                "hour_old": self.schedule.hour_old,
                 "rescheduled" : str(self.schedule.rescheduled)
             },
             "description" : self.description,
@@ -153,7 +154,7 @@ class TaskContainer():
             self.today = datetime.date.today()
             self.refresh_day_tasks()
             self.save()
-
+        
     def update_db(self, task_list):
         t_list = []
         for task in task_list:
@@ -168,7 +169,7 @@ class TaskContainer():
                 a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
                 t.activities.append(a)
             t.schedule.rescheduled = None if tmap["schedule"]["rescheduled"] == "None" else datetime.date.fromisoformat(tmap["schedule"]["rescheduled"])
-            t.schedule.hour_old = 1 
+            t.schedule.hour_old = tmap["schedule"]["hour_old"] if "hour_old" in tmap["schedule"] else 1
             t.completed_comment = tmap["completed_comment"]
             t.completed_date = None if tmap["completed_date"] == "None" else datetime.date.fromisoformat(tmap["completed_date"])
             t_list.append(t)
