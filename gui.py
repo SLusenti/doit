@@ -554,7 +554,6 @@ class app(Tk):
         self.tcont.refresh_day_tasks()
         self.fetch_list()
         self.tcont.save()
-        print(self.current_task.schedule.hour_old,self.current_task.schedule.hour)
 
 if __name__ == "__main__":
     root = app()
