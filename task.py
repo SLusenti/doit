@@ -4,13 +4,15 @@ import pickle
 from os import path
 import json
 
-version = "1.0.4"
+#change the version only if some attributes are added to Activity, Schedule or Task classes
+version = "1.0.5"
 
 class Activity:
-    def __init__(self, description=""):
+    def __init__(self, description="", hour=1):
         super().__init__()
         self.date = datetime.date.today()
         self.description = description
+        self.hour = hour
 
 class Schedule:
     def __init__(self,start_date="2000-01-01", hour="1", is_today=False, is_sticked=False):
@@ -92,7 +94,7 @@ class Task:
     
     def to_map(self):
         return { "name" : self.name,
-            "priority" : self.priority,
+            "priority" : self.priority if "priotity" in dir(self) else 1, # added in version 1.0.1
             "id" : str(self.id),
             "creation_date" : str(self.creation_date),
             "schedule" : {
@@ -100,14 +102,17 @@ class Task:
                 "is_sticked" : self.schedule.is_sticked,
                 "is_today" : self.schedule.is_today,
                 "hour" : self.schedule.hour,
-                "hour_old": self.schedule.hour_old,
-                "rescheduled" : str(self.schedule.rescheduled)
+                "hour_old": self.schedule.hour_old if "hour_old" in dir(self.schedule) else 1, # added in version 1.0.3
+                "rescheduled" : str(self.schedule.rescheduled) if self.schedule.rescheduled else self.schedule.rescheduled
             },
             "description" : self.description,
             "due_date" : str(self.due_date),
-            "activities" : [ {"date": str(act.date), "description": act.description} for act in self.activities ],
-            "tags" : self.tags,
-            "completed_date" : str(self.completed_date),
+            "activities" : [ { "date": str(act.date), 
+                               "description": act.description,
+                               "hour": act.hour if "hour" in dir(act) else 1 # added in version 1.0.5
+                            } for act in self.activities ], 
+            "tags" : self.tags if "tags" in dir(self) else [],
+            "completed_date" : str(self.completed_date) if self.completed_date else self.completed_date,
             "completed_comment" : self.completed_comment
         }
 
@@ -167,11 +172,12 @@ class TaskContainer():
             for item in range(len(tmap["activities"])):
                 a = Activity(description=tmap["activities"][item]["description"])
                 a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
+                a.hour = tmap["activities"][item]["hour"]
                 t.activities.append(a)
-            t.schedule.rescheduled = None if tmap["schedule"]["rescheduled"] == "None" else datetime.date.fromisoformat(tmap["schedule"]["rescheduled"])
-            t.schedule.hour_old = tmap["schedule"]["hour_old"] if "hour_old" in tmap["schedule"] else 1
+            t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
+            t.schedule.hour_old = tmap["schedule"]["hour_old"]
             t.completed_comment = tmap["completed_comment"]
-            t.completed_date = None if tmap["completed_date"] == "None" else datetime.date.fromisoformat(tmap["completed_date"])
+            t.completed_date = datetime.date.fromisoformat(tmap["completed_date"]) if tmap["completed_date"] else None
             t_list.append(t)
         return t_list
 

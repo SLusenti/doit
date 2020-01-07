@@ -125,20 +125,28 @@ class app(Tk):
         self.calendar = Calendar(calendar_frame, date_pattern="y-mm-dd",
                    font="Arial 8", selectmode='day',
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
-        hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
+        hour_label = Label(calendar_frame,text="expeted time to dedicate next" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
         hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
         hour_box.bind("<Return>",self.update_label_reschedule_time)
         self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        hour_eff_label = Label(calendar_frame,text="time dedicated today" ,font="LiberationMono-Bold 10")
+        self.hour_effective_string = StringVar() 
+        hour_eff_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
+        hour_eff_box.bind("<Return>",self.update_label_reschedule_eff_time)
+        self.hour_eff_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
         stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
         
         calendar_label.grid(column=0,row=0)
-        self.calendar.grid(column=0,row=1)
-        hour_label.grid(column=1,row=0, rowspan=3, padx=50)
-        hour_box.grid(column=2,row=0,rowspan=3)
-        self.hour_label.grid(column=3,row=0,rowspan=3,padx=5)
-        stick_box.grid(column=0,row=2, pady=5)
+        self.calendar.grid(column=0,row=1,rowspan=2)
+        hour_label.grid(column=1,row=1, padx=50)
+        hour_box.grid(column=2,row=1)
+        self.hour_label.grid(column=3,row=1,padx=5)
+        hour_eff_label.grid(column=1,row=2, padx=50)
+        hour_eff_box.grid(column=2,row=2)
+        self.hour_eff_label.grid(column=3,row=2,padx=5)
+        stick_box.grid(column=0,row=3, pady=5)
 
         cancel_button = ttk.Button(self.reschedule_frame ,text="cancel", command=self.cancel_event)
         reschedule_button = ttk.Button(self.reschedule_frame ,text="Reschedule", command=self.reschedule_task_event)
@@ -335,7 +343,8 @@ class app(Tk):
         for w in self.activity_frame_main.winfo_children():
             w.destroy()
         for activity in task.activities:
-            ttk.Label(self.activity_frame_main,text="date: {}".format(activity.date),font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
+            ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime dedicated: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
+                    font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
             DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10)
 
     def add_new_tag(self,event):
@@ -365,6 +374,9 @@ class app(Tk):
 
     def update_label_reschedule_time(self,event=None):
         self.hour_label.config(text="{}h {}m".format(int(int(self.hour_string.get())/6),int(int(self.hour_string.get())%6*10)))
+
+    def update_label_reschedule_eff_time(self,event=None):
+        self.hour_eff_label.config(text="{}h {}m".format(int(int(self.hour_effective_string.get())/6),int(int(self.hour_effective_string.get())%6*10)))
     
     def update_label_new_time(self,event=None):
         self.hour_new_label.config(text="{}h {}m".format(int(int(self.hour_new_string.get())/6),int(int(self.hour_new_string.get())%6*10)))
@@ -546,7 +558,7 @@ class app(Tk):
         self.reschedule_frame.pack(fill=X, padx=70)
         
     def reschedule_task_event(self):
-        self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1]),int(self.hour_string.get()), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
+        self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1]),int(self.hour_string.get(),int(self.hour_effective_string.get())), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
         self.reschedule_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         self.update_task_frame(widget)
