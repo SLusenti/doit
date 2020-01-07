@@ -4,7 +4,7 @@ import pickle
 from os import path
 import json
 
-version = "1.0.1"
+version = "1.0.2"
 
 class Activity:
     def __init__(self, description=""):
@@ -37,14 +37,16 @@ class Task:
         self.completed_comment = None
 
     def get_priority(self):
-        if self.schedule.is_today :
+        if self.schedule.rescheduled == datetime.date.today() or self.completed_date == datetime.date.today():
+            return -1
+        elif self.schedule.is_today :
             return 0
         elif datetime.date.today() >= self.schedule.start_date and self.schedule.is_sticked:
             return 1
-        elif datetime.date.today() >= self.schedule.start_date or self.schedule.rescheduled == datetime.date.today():
+        elif datetime.date.today() >= self.schedule.start_date:
             return (self.due_date - datetime.date.today()).days * self.priority
         else :
-            return -1
+            return -2
 
     def complete(self, comment: str):
         self.completed_date = datetime.date.today()
@@ -61,13 +63,13 @@ class Task:
         status = ""
         if self.completed_date:
             status = "COMPLETED"
-        elif self.schedule.rescheduled  and self.schedule.rescheduled == datetime.date.today():
+        elif self.get_priority() == -1:
             status = "NEXT"
         elif self.get_priority() > 0 and self.schedule.is_sticked:
             status = "STICKED"
         elif self.get_priority() > 0:
             status = "SCHEDULED"
-        elif self.get_priority() == -1:
+        elif self.get_priority() == -2:
             status = "PENDING"
         elif self.get_priority() == 0:
             status = "TODAY"
@@ -133,9 +135,8 @@ class TaskContainer():
                 db = pickle.load(db)
                 if db.version != version:
                     self.task_list = self.update_db(db.task_list)
-                    self.task_list.sort()
                     self._del_completed_task()
-                    self._refresh_day_tasks()
+                    self.refresh_day_tasks()
                     self.save()
                 else:
                     self.day_tasks_list = db.day_task_list
@@ -146,7 +147,7 @@ class TaskContainer():
         if datetime.date.today() != self.today:
             self._del_completed_task()
             self.today = datetime.date.today()
-            self._refresh_day_tasks()
+            self.refresh_day_tasks()
             self.save()
 
     def update_db(self, task_list):
@@ -194,8 +195,7 @@ class TaskContainer():
 
     def add_task(self, task: Task):
         self.task_list.append(task)
-        self.task_list.sort()
-        self._refresh_day_tasks()
+        self.refresh_day_tasks()
 
     def _calc_hcount(self):
         hcount = 0
@@ -203,12 +203,13 @@ class TaskContainer():
             hcount += task.schedule.hour
         return hcount
 
-    def _refresh_day_tasks(self):
+    def refresh_day_tasks(self):
+        self.task_list.sort()
         hcount = 0
         self.day_tasks_list = []
         for task in self.task_list:
-            if task.get_priority() != -1:
-                if task.get_priority() == 0 or task.get_priority() == 1:
+            if task.get_priority() != -2:
+                if task.get_priority() == -1 or task.get_priority() == 0 or task.get_priority() == 1:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour
                 elif hcount + task.schedule.hour < 42:

@@ -481,6 +481,8 @@ class app(Tk):
         self.complete_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         self.update_task_frame(widget)
+        self.tcont.refresh_day_tasks()
+        self.fetch_list()
         self.task_frame.pack(fill=BOTH, expand=True)
         self.tcont.save()
 
@@ -547,6 +549,8 @@ class app(Tk):
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         self.update_task_frame(widget)
         self.task_frame.pack(fill=BOTH, expand=True)
+        self.tcont.refresh_day_tasks()
+        self.fetch_list()
         self.tcont.save()
 
 if __name__ == "__main__":
