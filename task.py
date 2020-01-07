@@ -170,9 +170,8 @@ class TaskContainer():
             t.id = tmap["id"]
             t.creation_date = datetime.date.fromisoformat(tmap["creation_date"])
             for item in range(len(tmap["activities"])):
-                a = Activity(description=tmap["activities"][item]["description"])
+                a = Activity(description=tmap["activities"][item]["description"], hour=tmap["activities"][item]["hour"])
                 a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
-                a.hour = tmap["activities"][item]["hour"]
                 t.activities.append(a)
             t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
             t.schedule.hour_old = tmap["schedule"]["hour_old"]
