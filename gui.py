@@ -283,8 +283,8 @@ class app(Tk):
         description_text_frame.grid_columnconfigure(0, weight=1)
         self.description_text = Text(description_text_frame,font="FreeMono 10",wrap=WORD)
         self.description_text.insert('1.0', "description")
-        self.description_text.bind('<Leave>',self.save_event)
-        self.description_text.bind('<KeyPress>',self.save_new_desc)
+        self.description_text.bind('<Leave>',self.save_event,add=True)
+        self.description_text.bind('<KeyPress>',self.save_new_desc,add=True)
         scroll = Scrollbar(description_text_frame,orient=VERTICAL,command=self.description_text.yview)
         self.description_text.config(yscrollcommand=scroll.set)
 
@@ -348,6 +348,7 @@ class app(Tk):
             self.save_tags()
 
     def save_event(self,event=None):
+        self.current_task.description = self.description_text.get("1.0",END)
         self.tcont.save()
 
     def save_tags(self,event=None):
