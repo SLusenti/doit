@@ -128,6 +128,7 @@ class app(Tk):
         hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
         hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
+        hour_box.bind("<KeyPress>",self.update_label_reschedule_time)
         self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
         stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
@@ -210,10 +211,12 @@ class app(Tk):
         hour_label = Label(label_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_new_string = StringVar() 
         hour_box = Spinbox(label_frame,width=3, from_=1, to=36, textvariable=self.hour_new_string, command=self.update_label_new_time)
+        hour_box.bind("<KeyPress>",self.update_label_new_time)
         self.hour_new_label = Label(label_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         priority_new_label = Label(label_frame,text="priority 1-5 (1 is the highest)" ,font="LiberationMono-Bold 10")
         self.priority_new_string = StringVar() 
         priority_new_box = Spinbox(label_frame,width=3, from_=1, to=5, textvariable=self.priority_new_string)
+        priority_new_box.bind("<KeyPress>",self.priority_new_string)
 
         hour_label.grid(column=0,row=0,pady=5)
         hour_box.grid(column=1,row=0,pady=5)
@@ -543,7 +546,6 @@ class app(Tk):
         self.reschedule_frame.pack(fill=X, padx=70)
         
     def reschedule_task_event(self):
-        self.current_task.description = self.description_text.get("1.0",END)
         self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1]),int(self.hour_string.get()), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
         self.reschedule_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
@@ -552,6 +554,7 @@ class app(Tk):
         self.tcont.refresh_day_tasks()
         self.fetch_list()
         self.tcont.save()
+        print(self.current_task.schedule.hour_old,self.current_task.schedule.hour)
 
 if __name__ == "__main__":
     root = app()

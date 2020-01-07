@@ -4,7 +4,7 @@ import pickle
 from os import path
 import json
 
-version = "1.0.2"
+version = "1.0.4"
 
 class Activity:
     def __init__(self, description=""):
@@ -19,6 +19,7 @@ class Schedule:
         self.is_sticked = is_sticked
         self.is_today = is_today
         self.hour = hour
+        self.hour_old = None
         self.rescheduled = None
 
 class Task:
@@ -51,11 +52,13 @@ class Task:
     def complete(self, comment: str):
         self.completed_date = datetime.date.today()
         self.completed_comment = comment
+        self.schedule.hour_old = self.schedule.hour
 
     def reschedule(self, activity, hour: int, start_date, is_sticked: bool=False):
         self.schedule.rescheduled = datetime.date.today() 
         self.activities.append(activity)
         self.schedule.start_date = datetime.date.fromisoformat(start_date)
+        self.schedule.hour_old = self.schedule.hour
         self.schedule.hour = hour
         self.schedule.is_sticked = is_sticked
     
@@ -142,6 +145,7 @@ class TaskContainer():
                     self.day_tasks_list = db.day_task_list
                     self.today = db.today
                     self.task_list = db.task_list
+                    self.refresh_day_tasks()
         
         #check if it needs a refresh
         if datetime.date.today() != self.today:
@@ -164,6 +168,7 @@ class TaskContainer():
                 a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
                 t.activities.append(a)
             t.schedule.rescheduled = None if tmap["schedule"]["rescheduled"] == "None" else datetime.date.fromisoformat(tmap["schedule"]["rescheduled"])
+            t.schedule.hour_old = 1 
             t.completed_comment = tmap["completed_comment"]
             t.completed_date = None if tmap["completed_date"] == "None" else datetime.date.fromisoformat(tmap["completed_date"])
             t_list.append(t)
@@ -209,10 +214,13 @@ class TaskContainer():
         self.day_tasks_list = []
         for task in self.task_list:
             if task.get_priority() != -2:
-                if task.get_priority() == -1 or task.get_priority() == 0 or task.get_priority() == 1:
+                if task.get_priority() == -1:
+                    self.day_tasks_list.append(task)
+                    hcount += task.schedule.hour_old
+                elif task.get_priority() == 0 or task.get_priority() == 1:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour
-                elif hcount + task.schedule.hour < 42:
+                elif hcount + task.schedule.hour < 40:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour
 
