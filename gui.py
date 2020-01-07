@@ -128,7 +128,7 @@ class app(Tk):
         hour_label = Label(calendar_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
         hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
-        hour_box.bind("<KeyPress>",self.update_label_reschedule_time)
+        hour_box.bind("<Return>",self.update_label_reschedule_time)
         self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
         stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
@@ -211,12 +211,11 @@ class app(Tk):
         hour_label = Label(label_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
         self.hour_new_string = StringVar() 
         hour_box = Spinbox(label_frame,width=3, from_=1, to=36, textvariable=self.hour_new_string, command=self.update_label_new_time)
-        hour_box.bind("<KeyPress>",self.update_label_new_time)
+        hour_box.bind("<Return>",self.update_label_new_time)
         self.hour_new_label = Label(label_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         priority_new_label = Label(label_frame,text="priority 1-5 (1 is the highest)" ,font="LiberationMono-Bold 10")
         self.priority_new_string = StringVar() 
         priority_new_box = Spinbox(label_frame,width=3, from_=1, to=5, textvariable=self.priority_new_string)
-        priority_new_box.bind("<KeyPress>",self.priority_new_string)
 
         hour_label.grid(column=0,row=0,pady=5)
         hour_box.grid(column=1,row=0,pady=5)
@@ -286,8 +285,8 @@ class app(Tk):
         description_text_frame.grid_columnconfigure(0, weight=1)
         self.description_text = Text(description_text_frame,font="FreeMono 10",wrap=WORD)
         self.description_text.insert('1.0', "description")
-        self.description_text.bind('<Leave>',self.save_event,add=True)
-        self.description_text.bind('<KeyPress>',self.save_new_desc,add=True)
+        self.description_text.bind('<Leave>',self.save_event)
+        self.description_text.bind('<KeyPress>',self.save_new_desc)
         scroll = Scrollbar(description_text_frame,orient=VERTICAL,command=self.description_text.yview)
         self.description_text.config(yscrollcommand=scroll.set)
 
@@ -364,10 +363,10 @@ class app(Tk):
     def save_new_desc(self,event):
         self.current_task.description = self.description_text.get("1.0",END)
 
-    def update_label_reschedule_time(self):
+    def update_label_reschedule_time(self,event=None):
         self.hour_label.config(text="{}h {}m".format(int(int(self.hour_string.get())/6),int(int(self.hour_string.get())%6*10)))
     
-    def update_label_new_time(self):
+    def update_label_new_time(self,event=None):
         self.hour_new_label.config(text="{}h {}m".format(int(int(self.hour_new_string.get())/6),int(int(self.hour_new_string.get())%6*10)))
 
     def fetch_list_event(self,event):
