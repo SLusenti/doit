@@ -165,13 +165,13 @@ class app(Tk):
         container_frame = ttk.Frame(self.new_task_frame)
         container_frame.grid_rowconfigure(0, weight=1)
         container_frame.grid_columnconfigure(0, weight=1)
-        name_label = Label(container_frame,text="task name" ,font="Keraleeyam-Regular 10")
+        name_label = Label(container_frame,text="task name" ,font="LiberationMono-Bold 10")
         self.name_new_task_string = StringVar()
         self.name_new_task_string.set("")
         name_new_task_entry = Entry(container_frame, textvariable=self.name_new_task_string ,font="Keraleeyam-Regular 10")
 
         tags_frame = ttk.Frame(self.new_task_frame)
-        tags_label = Label(tags_frame,text="tags" ,font="Keraleeyam-Regular 10")
+        tags_label = Label(tags_frame,text="tags" ,font="LiberationMono-Bold 10")
         self.tags_new_task_string = StringVar()
         self.tags_new_task_string.set("")
         tags_new_task_entry = Entry(tags_frame, textvariable=self.tags_new_task_string ,font="Keraleeyam-Regular 10")
@@ -265,7 +265,7 @@ class app(Tk):
 
 
         tags_frame = ttk.Frame(self.task_frame)
-        tags_label = Label(tags_frame,text="tags: " ,font="Keraleeyam-Regular 10")
+        tags_label = Label(tags_frame,text="tags: " ,font="LiberationMono-Bold 10")
         self.tags_task_string = StringVar()
         self.tags_task_string.set("")
         self.tags_task_entry = Entry(tags_frame, textvariable=self.tags_task_string ,font="Keraleeyam-Regular 10")
@@ -552,13 +552,14 @@ class app(Tk):
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
         self.calendar.selection_set(tomorrow)
         self.hour_string.set(1)
+        self.hour_effective_string.set(1)
         self.reschedule_text.delete("1.0",END)
         self.stick.set(0)
         self.task_frame.pack_forget()
         self.reschedule_frame.pack(fill=X, padx=70)
         
     def reschedule_task_event(self):
-        self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1]),int(self.hour_string.get(),int(self.hour_effective_string.get())), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
+        self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1],int(self.hour_effective_string.get())),int(self.hour_string.get()), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
         self.reschedule_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         self.update_task_frame(widget)
