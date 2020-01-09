@@ -34,6 +34,7 @@ class app(Tk):
     def __init__(self, screenName=None, baseName=None, className="Doit!", useTk=1, sync=0, use=None):
         super().__init__(screenName=screenName, baseName=baseName, className=className, useTk=useTk, sync=sync, use=use)
         self.tcont = TaskContainer()
+        self.new_description = ""
         #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
         self.current_task = None
         self.task_list_old = []
@@ -125,14 +126,14 @@ class app(Tk):
         self.calendar = Calendar(calendar_frame, date_pattern="y-mm-dd",
                    font="Arial 8", selectmode='day',
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
-        hour_label = Label(calendar_frame,text="expeted time to dedicate next" ,font="LiberationMono-Bold 10")
+        hour_label = Label(calendar_frame,text="expeted time to spend next next" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
         hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
         hour_box.bind("<Return>",self.update_label_reschedule_time)
         self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
-        hour_eff_label = Label(calendar_frame,text="time dedicated today" ,font="LiberationMono-Bold 10")
+        hour_eff_label = Label(calendar_frame,text="time spent today" ,font="LiberationMono-Bold 10")
         self.hour_effective_string = StringVar() 
-        hour_eff_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
+        hour_eff_box = Spinbox(calendar_frame, width=3, from_=1, to=144, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
         hour_eff_box.bind("<Return>",self.update_label_reschedule_eff_time)
         self.hour_eff_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
@@ -216,7 +217,7 @@ class app(Tk):
         label_frame.grid_rowconfigure(0, weight=1)
         label_frame.grid_columnconfigure(0, weight=1)
 
-        hour_label = Label(label_frame,text="expeted time to dedicate (unity is 10min)" ,font="LiberationMono-Bold 10")
+        hour_label = Label(label_frame,text="Time to spend next" ,font="LiberationMono-Bold 10")
         self.hour_new_string = StringVar() 
         hour_box = Spinbox(label_frame,width=3, from_=1, to=36, textvariable=self.hour_new_string, command=self.update_label_new_time)
         hour_box.bind("<Return>",self.update_label_new_time)
@@ -256,7 +257,7 @@ class app(Tk):
         self.label_due = Label(ldabel_text_frame,text="due date: {}",font="LiberationMono-Bold 10")
         self.label_state = Label(ldabel_text_frame,text="state: {}",font="LiberationMono-Bold 10")
         self.label_priority = Label(ldabel_text_frame,text="priority: {}",font="LiberationMono-Bold 10")
-        self.label_time = Label(ldabel_text_frame,text="Time to dedicate: {}",font="LiberationMono-Bold 10")
+        self.label_time = Label(ldabel_text_frame,text="time to spend next: {}",font="LiberationMono-Bold 10")
         self.label_created.grid(column=0, row=0, padx=20)
         self.label_due.grid(column=1, row=0, padx=20)
         self.label_state.grid(column=2, row=0, padx=20)
@@ -295,6 +296,7 @@ class app(Tk):
         self.description_text.insert('1.0', "description")
         self.description_text.bind('<Leave>',self.save_event)
         self.description_text.bind('<KeyPress>',self.save_new_desc)
+        self.description_text.bind('<Control-z>',self.discard_text_changes)
         scroll = Scrollbar(description_text_frame,orient=VERTICAL,command=self.description_text.yview)
         self.description_text.config(yscrollcommand=scroll.set)
 
@@ -339,11 +341,17 @@ class app(Tk):
         self.tabs.add(self.list_all,text="WIP")
         self.tabs.add(self.list_old,text="History")
 
+    def discard_text_changes(self,event=None):
+        print("ok")
+        self.description_text.delete("1.0",END)
+        self.new_description = self.current_task.description
+        self.description_text.insert("1.0",self.new_description)
+
     def fetch_activities(self,task):
         for w in self.activity_frame_main.winfo_children():
             w.destroy()
         for activity in task.activities:
-            ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime dedicated: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
+            ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime spent: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
                     font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
             DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10)
 
@@ -359,7 +367,7 @@ class app(Tk):
             self.save_tags()
 
     def save_event(self,event=None):
-        self.current_task.description = self.description_text.get("1.0",END)
+        self.current_task.description = self.new_description
         self.tcont.save()
 
     def save_tags(self,event=None):
@@ -370,7 +378,7 @@ class app(Tk):
         self.tcont.save()
 
     def save_new_desc(self,event):
-        self.current_task.description = self.description_text.get("1.0",END)
+        self.new_description = self.description_text.get("1.0",END)
 
     def update_label_reschedule_time(self,event=None):
         self.hour_label.config(text="{}h {}m".format(int(int(self.hour_string.get())/6),int(int(self.hour_string.get())%6*10)))
@@ -446,7 +454,8 @@ class app(Tk):
             self.id_string.set(self.current_task.id)
             self.description_text.config(state=NORMAL)
             self.description_text.delete(1.0,END)
-            self.description_text.insert('1.0', self.current_task.description)
+            self.new_description = self.current_task.description
+            self.description_text.insert('1.0',self.new_description)
 
             for w in self.tags_frame.winfo_children():
                 w.destroy()
@@ -482,7 +491,7 @@ class app(Tk):
             self.label_created.config(text="created: {}".format(str(self.current_task.creation_date)))
             self.label_due.config(text="due date: {}".format(self.current_task.due_date.isoformat()))
             self.label_priority.config(text="priotity: {}".format(int(self.current_task.priority)))
-            self.label_time.config(text="Time to dedicate: {}h {}m".format(int(self.current_task.schedule.hour/6),int(self.current_task.schedule.hour%6*10)))
+            self.label_time.config(text="time to spend next: {}h {}m".format(int(self.current_task.schedule.hour/6),int(self.current_task.schedule.hour%6*10)))
 
     def complete_event(self):
         self.task_frame.pack_forget()
