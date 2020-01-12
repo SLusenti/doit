@@ -117,27 +117,27 @@ class app(Tk):
         activity_label = Label(self.reschedule_frame,text="Description of the WIP" ,font="LiberationMono-Bold 10")
         self.reschedule_text = Text(self.reschedule_frame,height=10,font="FreeMono 10")
 
-        calendar_frame = ttk.Frame(self.reschedule_frame)
-        calendar_frame.grid_rowconfigure(0, weight=1)
-        calendar_frame.grid_columnconfigure(0, weight=1)
+        self.calendar_frame = ttk.Frame(self.reschedule_frame)
+        self.calendar_frame.grid_rowconfigure(0, weight=1)
+        self.calendar_frame.grid_columnconfigure(0, weight=1)
 
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        calendar_label = Label(calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 10")
-        self.calendar = Calendar(calendar_frame, date_pattern="y-mm-dd",
+        calendar_label = Label(self.calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 10")
+        self.calendar = Calendar(self.calendar_frame, date_pattern="y-mm-dd",
                    font="Arial 8", selectmode='day',
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
-        hour_label = Label(calendar_frame,text="expeted time to spend next next" ,font="LiberationMono-Bold 10")
+        hour_label = Label(self.calendar_frame,text="expeted time to spend next next" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
-        hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
+        hour_box = Spinbox(self.calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
         hour_box.bind("<Return>",self.update_label_reschedule_time)
-        self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
-        hour_eff_label = Label(calendar_frame,text="time spent today" ,font="LiberationMono-Bold 10")
+        self.hour_label = Label(self.calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        hour_eff_label = Label(self.calendar_frame,text="time spent today" ,font="LiberationMono-Bold 10")
         self.hour_effective_string = StringVar() 
-        hour_eff_box = Spinbox(calendar_frame, width=3, from_=1, to=144, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
+        hour_eff_box = Spinbox(self.calendar_frame, width=3, from_=1, to=144, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
         hour_eff_box.bind("<Return>",self.update_label_reschedule_eff_time)
-        self.hour_eff_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        self.hour_eff_label = Label(self.calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
-        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
+        stick_box = Checkbutton(self.calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
         
         calendar_label.grid(column=0,row=0)
         self.calendar.grid(column=0,row=1,rowspan=2)
@@ -155,7 +155,7 @@ class app(Tk):
         title_reschedule_label.pack(pady=15,fill=X)
         activity_label.pack()
         self.reschedule_text.pack(pady=5, fill=X)
-        calendar_frame.pack()
+        self.calendar_frame.pack()
         reschedule_button.pack(side=RIGHT, pady=10)
         cancel_button.pack(side=RIGHT, pady=10,padx=40)
 
@@ -367,6 +367,7 @@ class app(Tk):
             self.save_tags()
 
     def save_event(self,event=None):
+        self.new_description = self.description_text.get("1.0", END)
         self.current_task.description = self.new_description
         self.tcont.save()
 
@@ -562,6 +563,8 @@ class app(Tk):
         self.calendar.selection_set(tomorrow)
         self.hour_string.set(1)
         self.hour_effective_string.set(1)
+        self.hour_label.config(text="0h 10m")
+        self.hour_eff_label.config(text="0h 10m")
         self.reschedule_text.delete("1.0",END)
         self.stick.set(0)
         self.task_frame.pack_forget()
