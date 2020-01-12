@@ -117,27 +117,27 @@ class app(Tk):
         activity_label = Label(self.reschedule_frame,text="Description of the WIP" ,font="LiberationMono-Bold 10")
         self.reschedule_text = Text(self.reschedule_frame,height=10,font="FreeMono 10")
 
-        self.calendar_frame = ttk.Frame(self.reschedule_frame)
-        self.calendar_frame.grid_rowconfigure(0, weight=1)
-        self.calendar_frame.grid_columnconfigure(0, weight=1)
+        calendar_frame = ttk.Frame(self.reschedule_frame)
+        calendar_frame.grid_rowconfigure(0, weight=1)
+        calendar_frame.grid_columnconfigure(0, weight=1)
 
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        calendar_label = Label(self.calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 10")
-        self.calendar = Calendar(self.calendar_frame, date_pattern="y-mm-dd",
+        calendar_label = Label(calendar_frame,text="reschedule date" ,font="LiberationMono-Bold 10")
+        self.calendar = Calendar(calendar_frame, date_pattern="y-mm-dd",
                    font="Arial 8", selectmode='day',
                    cursor="hand1", year=tomorrow.year, month=tomorrow.month, day=tomorrow.day)
-        hour_label = Label(self.calendar_frame,text="expeted time to spend next next" ,font="LiberationMono-Bold 10")
+        hour_label = Label(calendar_frame,text="expeted time to spend next next" ,font="LiberationMono-Bold 10")
         self.hour_string = StringVar() 
-        hour_box = Spinbox(self.calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
+        hour_box = Spinbox(calendar_frame, width=3, from_=1, to=36, textvariable=self.hour_string, command=self.update_label_reschedule_time)
         hour_box.bind("<Return>",self.update_label_reschedule_time)
-        self.hour_label = Label(self.calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
-        hour_eff_label = Label(self.calendar_frame,text="time spent today" ,font="LiberationMono-Bold 10")
+        self.hour_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        hour_eff_label = Label(calendar_frame,text="time spent today" ,font="LiberationMono-Bold 10")
         self.hour_effective_string = StringVar() 
-        hour_eff_box = Spinbox(self.calendar_frame, width=3, from_=1, to=144, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
+        hour_eff_box = Spinbox(calendar_frame, width=3, from_=1, to=144, textvariable=self.hour_effective_string, command=self.update_label_reschedule_eff_time)
         hour_eff_box.bind("<Return>",self.update_label_reschedule_eff_time)
-        self.hour_eff_label = Label(self.calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
+        self.hour_eff_label = Label(calendar_frame,text="0h 10m" ,font="LiberationMono-Bold 10")
         self.stick = IntVar()
-        stick_box = Checkbutton(self.calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
+        stick_box = Checkbutton(calendar_frame, text="do not postpone", font="LiberationMono-Bold 10", variable=self.stick)
         
         calendar_label.grid(column=0,row=0)
         self.calendar.grid(column=0,row=1,rowspan=2)
@@ -155,7 +155,7 @@ class app(Tk):
         title_reschedule_label.pack(pady=15,fill=X)
         activity_label.pack()
         self.reschedule_text.pack(pady=5, fill=X)
-        self.calendar_frame.pack()
+        calendar_frame.pack()
         reschedule_button.pack(side=RIGHT, pady=10)
         cancel_button.pack(side=RIGHT, pady=10,padx=40)
 
@@ -280,14 +280,20 @@ class app(Tk):
         main_task_frame = ttk.Frame(self.task_frame)
         tabs = ttk.Notebook(main_task_frame)
 
+        def myfunction(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        def onCanvasConfigure(event):
+            canvas.itemconfigure(canvas_item, width=canvas.winfo_width()-20)
         activity_frame = ttk.Frame(tabs)
-        activity_frame.grid_rowconfigure(0, weight=1)
-        activity_frame.grid_columnconfigure(0, weight=1)
-        self.activity_frame_main = Canvas(activity_frame)
-        scroll1 = Scrollbar(activity_frame,orient=VERTICAL,command=self.activity_frame_main.yview)
-        self.activity_frame_main.config(yscrollcommand=scroll1.set)
-        self.activity_frame_main.grid(column=0, row=0, stick="news")
-        scroll1.grid(column=1, row=0, stick="news")
+        canvas = Canvas(activity_frame,width=20,height=20)
+        self.activity_frame_main = Frame(canvas)
+        scroll1 = Scrollbar(activity_frame,orient=VERTICAL,command=canvas.yview)
+        canvas.config(yscrollcommand=scroll1.set)
+        canvas_item = canvas.create_window((0,0),window=self.activity_frame_main,anchor='w')
+        self.activity_frame_main.bind("<Configure>",myfunction)
+        canvas.bind('<Configure>', onCanvasConfigure)
+        canvas.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll1.pack(side=RIGHT, fill=Y)
 
         description_text_frame = Frame(tabs)
         description_text_frame.grid_rowconfigure(0, weight=1)
@@ -299,6 +305,8 @@ class app(Tk):
         self.description_text.bind('<Control-z>',self.discard_text_changes)
         scroll = Scrollbar(description_text_frame,orient=VERTICAL,command=self.description_text.yview)
         self.description_text.config(yscrollcommand=scroll.set)
+        self.description_text.grid(column=0, row=0, stick="news")
+        scroll.grid(column=1, row=0, stick="news")
 
         tabs.add(description_text_frame,text="description")
         tabs.add(activity_frame,text="activities")
@@ -321,9 +329,7 @@ class app(Tk):
         id_label.pack(fill=X,pady=5,padx=10)
         ldabel_text_frame.pack(pady=5,padx=10)
         tags_frame.pack(fill=X,pady=5,padx=100)
-        main_task_frame.pack(fill=BOTH, expand=True, padx=100, pady=5)
-        self.description_text.grid(column=0, row=0, stick="news")
-        scroll.grid(column=1, row=0, stick="news")
+        main_task_frame.pack(padx=100, pady=5, expand=True, fill=BOTH)
 
         self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
         self.complete_button.pack(side=RIGHT, pady=1)        
@@ -350,10 +356,23 @@ class app(Tk):
     def fetch_activities(self,task):
         for w in self.activity_frame_main.winfo_children():
             w.destroy()
+        hcount = 0
+        for activity in task.activities:
+            hcount += activity.hour
+        if int(hcount/6) > 24:
+            ttk.Label(self.activity_frame_main,text="total time spent: {}d {}h {}m".format(
+                    int(hcount/(6*24)), 
+                    int((hcount-int(hcount/(6*24))*(6*24))/6), 
+                    int((hcount-int(hcount/(6*24))*(6*24))%6*10)
+                ),
+                font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)  
+        else:
+            ttk.Label(self.activity_frame_main,text="total time spent: {}h {}m".format(int(hcount/6), int(hcount%6*10)),
+                    font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)
         for activity in task.activities:
             ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime spent: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
                     font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
-            DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10)
+            DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10, expand=True)
 
     def add_new_tag(self,event):
         if len(self.tags_container.winfo_children()) <= 5 :
