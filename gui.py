@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkcalendar import Calendar
 from task import *
 import datetime
+import os
 import filter_task as filtask
 
 
@@ -35,6 +36,9 @@ class app(Tk):
         super().__init__(screenName=screenName, baseName=baseName, className=className, useTk=useTk, sync=sync, use=use)
         self.tcont = TaskContainer()
         self.new_description = ""
+        print()
+        icon_src = os.path.dirname(os.path.realpath(__file__))+'/doit.png'
+        self.tk.call('wm', 'iconphoto', self._w, PhotoImage(file=icon_src))
         #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
         self.current_task = None
         self.task_list_old = []
@@ -386,7 +390,7 @@ class app(Tk):
             self.save_tags()
 
     def save_event(self,event=None):
-        self.new_description = self.description_text.get("1.0", END)
+        self.new_description = self.description_text.get("1.0", END)[:-1]
         self.current_task.description = self.new_description
         self.tcont.save()
 
@@ -398,7 +402,7 @@ class app(Tk):
         self.tcont.save()
 
     def save_new_desc(self,event):
-        self.new_description = self.description_text.get("1.0",END)
+        self.new_description = self.description_text.get("1.0",END)[:-1]
 
     def update_label_reschedule_time(self,event=None):
         self.hour_label.config(text="{}h {}m".format(int(int(self.hour_string.get())/6),int(int(self.hour_string.get())%6*10)))
@@ -520,7 +524,7 @@ class app(Tk):
         self.complete_frame.pack(fill=X, padx=70)
 
     def complete_task_event(self):
-        self.current_task.description = self.description_text.get("1.0",END)
+        self.current_task.description = self.description_text.get("1.0",END)[:-1]
         self.current_task.complete(self.complete_text.get("1.0",END))
         self.complete_frame.pack_forget()
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
