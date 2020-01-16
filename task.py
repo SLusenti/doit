@@ -168,23 +168,28 @@ class TaskContainer():
         t_list = []
         for task in task_list:
             tmap = task.to_map()
-            t = Task(name=tmap["name"],description=tmap["description"],start_date=tmap["schedule"]["start_date"],
-                    due_date=tmap["due_date"],hour=tmap["schedule"]["hour"],priority=int(tmap["priority"]),is_today=tmap["schedule"]["is_today"],
-                    tags=tmap["tags"],is_sticked=tmap["schedule"]["is_sticked"])
-            t.id = tmap["id"]
-            t.creation_date = datetime.date.fromisoformat(tmap["creation_date"])
-            for item in range(len(tmap["activities"])):
-                a = Activity(description=tmap["activities"][item]["description"], hour=tmap["activities"][item]["hour"])
-                a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
-                t.activities.append(a)
-            t.childs = tmap["childs"]
-            t.parents = tmap["parents"]
-            t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
-            t.schedule.hour_old = tmap["schedule"]["hour_old"]
-            t.completed_comment = tmap["completed_comment"]
-            t.completed_date = datetime.date.fromisoformat(tmap["completed_date"]) if tmap["completed_date"] else None
+            t = self._to_task(tmap)
             t_list.append(t)
         return t_list
+
+    def _to_task(self,tmap):
+        t = Task(name=tmap["name"],description=tmap["description"],start_date=tmap["schedule"]["start_date"],
+                due_date=tmap["due_date"],hour=tmap["schedule"]["hour"],priority=int(tmap["priority"]),is_today=tmap["schedule"]["is_today"],
+                tags=tmap["tags"],is_sticked=tmap["schedule"]["is_sticked"])
+        t.id = tmap["id"]
+        t.creation_date = datetime.date.fromisoformat(tmap["creation_date"])
+        for item in range(len(tmap["activities"])):
+            a = Activity(description=tmap["activities"][item]["description"], hour=tmap["activities"][item]["hour"])
+            a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
+            t.activities.append(a)
+        t.childs = tmap["childs"]
+        t.parents = tmap["parents"]
+        t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
+        t.schedule.hour_old = tmap["schedule"]["hour_old"]
+        t.completed_comment = tmap["completed_comment"]
+        t.completed_date = datetime.date.fromisoformat(tmap["completed_date"]) if tmap["completed_date"] else None
+        return t
+        
 
     def save(self):
         with open("db","bw") as db:
@@ -214,9 +219,39 @@ class TaskContainer():
                 return task
         return None
 
-    def __save_old__(self, old_task_list):
-        with open("old","bw") as db_old:
+    def export_db(self):
+        export_db = {
+            "db": [],
+            "old": []
+        }
+        for task in self.task_list:
+            export_db["db"].append(task.to_map())
+        for task in self.old_list:
+            export_db["old"].append(task.to_map())
+        with open("./backup.json","w") as jdb:
+            jdb.write(json.dumps(export_db))
+    
+    def import_db(self):
+        import_db = {}
+        with open("./backup.json","r") as jdb:
+            import_db = json.loads(jdb.read())
+        self.task_list = []
+        for tmap in import_db["db"]:
+            t = self._to_task(tmap)
+            self.task_list.append(t)
+        self.old_list = []
+        for tmap in import_db["old"]:
+            t = self._to_task(tmap)
+            self.old_list.append(t)
+        self.refresh_day_tasks()
+        self.save()
+        if len(self.old_list) > 0:
+            self.__save_old__()
+
+    def __save_old__(self, old_task_list=None):
+        if old_task_list:
             self.old_list += old_task_list
+        with open("old","bw") as db_old:
             pickle.dump(self.old_list, db_old)
 
     def add_task(self, task: Task):

@@ -47,6 +47,15 @@ def test_task_generation():
     print("\nday:")
     tcont._print_day_list()
 
+
+
 if __name__ == "__main__":
     tcont = TaskContainer()
     test_task_generation()
+    #tcont.export_db()
+    #for t in tcont.task_list:
+    #    print(t.name,"\t",t.id)
+    #print("\nimport")
+    #tcont.import_db()
+    #for t in tcont.task_list:
+    #    print(t.name,"\t",t.id)

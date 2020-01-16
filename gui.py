@@ -73,17 +73,25 @@ class app(Tk):
             self.fetch_list()
             if len(self.tcont.day_tasks_list) > 0:
                 self.update_task_frame()
-                self.fetch_activities()
                 self.task_frame.pack(fill=BOTH, expand=True)
         
         if len(self.tcont.old_list) > 0:
             self.fetch_old()
 
     def drow_menu_frame(self):
+        def import_fn():
+            self.tcont.import_db()
+            self.fetch_list()
+            if len(self.tcont.old_list) > 0:
+                self.fetch_old()
+            self.update_task_frame()
+            self.task_frame.pack(fill=BOTH, expand=True)
         menu_frame = Frame(self, bg="gray")
         button_frame = Frame(menu_frame, bg="gray")
         Button(button_frame,text="new task", command=self.new_event).pack(side=LEFT, padx=5,pady=5)
         Button(button_frame,text="save", command=self.save_event).pack(side=LEFT, padx=5,pady=5)
+        Button(button_frame,text="export", command=self.tcont.export_db).pack(side=LEFT, padx=5,pady=5)
+        Button(button_frame,text="import", command=import_fn ).pack(side=LEFT, padx=5,pady=5)
         button_frame.pack(side=LEFT, padx=20)
 
         filter_frame = Frame(menu_frame, bg="gray")
@@ -468,7 +476,8 @@ class app(Tk):
         self.tcont.save()
 
     def quit_event(self,event=None):
-        self.save_event()
+        if self.current_task:
+            self.save_event()
         self.destroy()
 
     def save_tags(self,event=None):
