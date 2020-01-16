@@ -53,6 +53,7 @@ class app(Tk):
         super().__init__(screenName=screenName, baseName=baseName, className=className, useTk=useTk, sync=sync, use=use)
         self.tcont = TaskContainer()
         self.new_description = ""
+        self.protocol("WM_DELETE_WINDOW", self.quit_event)
         icon_src = os.path.dirname(os.path.realpath(__file__))+'/doit.png'
         self.tk.call('wm', 'iconphoto', self._w, PhotoImage(file=icon_src))
         #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
@@ -406,7 +407,7 @@ class app(Tk):
             task.parents.append(self.current_task.id)
             self.update_task_frame()
             self.tcont.save()
-        elif task:
+        elif task and self.rel_type_string.get() == "PARENT":
             self.current_task.parents.append(task.id)
             task.childs.append(self.current_task.id)
             self.update_task_frame()
@@ -445,10 +446,10 @@ class app(Tk):
             self.update_task_frame(task=task)
         for child in self.current_task.childs:
             task = self.tcont.serach_task(child)
-            rel_frame(self.relation_frame,task," CHILD ",bind_dclick).pack(fill=X, padx=5)
+            rel_frame(self.relation_frame,task,"CHILD ",bind_dclick).pack(fill=X, padx=5)
         for parent in self.current_task.parents:
             task = self.tcont.serach_task(parent)
-            rel_frame(self.relation_frame,task,"PARTENT", bind_dclick).pack(fill=X, padx=5)
+            rel_frame(self.relation_frame,task,"PARENT", bind_dclick).pack(fill=X, padx=5)
 
     def add_new_tag(self,event):
         if len(self.tags_container.winfo_children()) <= 5 :
@@ -465,6 +466,10 @@ class app(Tk):
         self.new_description = self.description_text.get("1.0", END)[:-1]
         self.current_task.description = self.new_description
         self.tcont.save()
+
+    def quit_event(self,event=None):
+        self.save_event()
+        self.destroy()
 
     def save_tags(self,event=None):
         tags = []
