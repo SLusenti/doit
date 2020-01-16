@@ -7,6 +7,23 @@ import os
 import filter_task as filtask
 
 
+class rel_frame(Frame):
+    def __init__(self, master=None, task=None, reltype="", bind=None, *cnf, **kw):
+        super().__init__(master=master, 
+                            highlightbackground="gray",
+                            highlightcolor="gray",
+                            highlightthickness=2,
+                            bd=0,
+                        *cnf, **kw)
+        lb1 = ttk.Label(self,text="{}".format(task.name),
+                    font="FreeMono 10 bold",padding="0 2 0 2")
+        lb1.pack(fill=X, padx=10)
+        lb2 = ttk.Label(self,text="\t{} | {} | {} ".format(task.id, reltype, task.get_status()),
+                    font="FreeMono 10 bold",padding="0 2 0 2")
+        lb2.pack(fill=X, padx=10)
+        lb2.bind("<Double-Button-1>",lambda event, task=task: bind(task))
+        lb1.bind("<Double-Button-1>",lambda event, task=task: bind(task))
+
 class TagLabel(Entry):
     def __init__(self, master=None, text="",clickdestroy=False, *cnf, **kw):
         super().__init__(master=master, *cnf, **kw)
@@ -36,7 +53,6 @@ class app(Tk):
         super().__init__(screenName=screenName, baseName=baseName, className=className, useTk=useTk, sync=sync, use=use)
         self.tcont = TaskContainer()
         self.new_description = ""
-        print()
         icon_src = os.path.dirname(os.path.realpath(__file__))+'/doit.png'
         self.tk.call('wm', 'iconphoto', self._w, PhotoImage(file=icon_src))
         #self.tcont.today = datetime.date.today() - datetime.timedelta(day=1) # uncomment only for debugging/testing purpose
@@ -55,8 +71,8 @@ class app(Tk):
         if len(self.tcont.task_list) > 0:
             self.fetch_list()
             if len(self.tcont.day_tasks_list) > 0:
-                self.fetch_activities(self.tcont.day_tasks_list[0])
-                self.update_task_frame(self.list_day)
+                self.update_task_frame()
+                self.fetch_activities()
                 self.task_frame.pack(fill=BOTH, expand=True)
         
         if len(self.tcont.old_list) > 0:
@@ -299,6 +315,22 @@ class app(Tk):
         canvas.pack(side=LEFT, fill=BOTH, expand=True)
         scroll1.pack(side=RIGHT, fill=Y)
 
+        
+        def myfunction2(event):
+            canvas_rel.configure(scrollregion=canvas_rel.bbox("all"))
+        def onCanvasConfigure2(event):
+            canvas_rel.itemconfigure(canvas_rel_item, width=canvas_rel.winfo_width()-20)
+        relation_frame = Frame(tabs)
+        canvas_rel = Canvas(relation_frame,width=20,height=20)
+        self.relation_frame = Frame(canvas_rel)
+        scroll2 = Scrollbar(relation_frame,orient=VERTICAL,command=canvas.yview)
+        canvas_rel.config(yscrollcommand=scroll2.set)
+        canvas_rel_item = canvas_rel.create_window((0,0),window=self.relation_frame,anchor='w')
+        self.relation_frame.bind("<Configure>",myfunction2)
+        canvas_rel.bind('<Configure>', onCanvasConfigure2)
+        canvas_rel.pack(side=LEFT, fill=BOTH, expand=True)
+        scroll2.pack(side=RIGHT, fill=Y)
+
         description_text_frame = Frame(tabs)
         description_text_frame.grid_rowconfigure(0, weight=1)
         description_text_frame.grid_columnconfigure(0, weight=1)
@@ -314,6 +346,7 @@ class app(Tk):
 
         tabs.add(description_text_frame,text="description")
         tabs.add(activity_frame,text="activities")
+        tabs.add(relation_frame,text="related tasks")
         tabs.pack(fill=BOTH, expand=True)
 
         self.complete_task_frame = ttk.Frame(self.task_frame)
@@ -328,13 +361,27 @@ class app(Tk):
 
         self.reschedule_button = ttk.Button(self.task_frame ,text="Reschedule", command=self.reschedule_event)
         self.complete_button = ttk.Button(self.task_frame ,text="Complete", command=self.complete_event)
+
+        rel_button_frame = Frame(self.task_frame)
+        self.rel_button = ttk.Button(rel_button_frame,text="Relate task", command=self.add_relationship)
+        rel_label = Label(rel_button_frame,text="id: " ,font="LiberationMono-Bold 10")
+        self.rel_id_string = StringVar()
+        rel_entry = Entry(rel_button_frame, width=36, textvariable=self.rel_id_string ,font="Keraleeyam-Regular 10")
+        self.rel_type_string = StringVar()
+        combo = ttk.Combobox(rel_button_frame,width=7,textvariable=self.rel_type_string, values=("CHILD","PARENT"))
+        rel_label.pack(side=LEFT,padx=5)
+        rel_entry.pack(side=LEFT,padx=5)
+        combo.pack(side=LEFT,padx=10)
+        self.rel_button.pack(side=LEFT, padx=20)
+
         
         title_label.pack(fill=X,pady=5,padx=10)
         id_label.pack(fill=X,pady=5,padx=10)
         ldabel_text_frame.pack(pady=5,padx=10)
         tags_frame.pack(fill=X,pady=5,padx=100)
         main_task_frame.pack(padx=100, pady=5, expand=True, fill=BOTH)
-
+        
+        rel_button_frame.pack(side=LEFT, padx=30)
         self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
         self.complete_button.pack(side=RIGHT, pady=1)        
 
@@ -350,18 +397,31 @@ class app(Tk):
         self.tabs.add(self.list_day,text="Today")
         self.tabs.add(self.list_all,text="WIP")
         self.tabs.add(self.list_old,text="History")
+    
+    def add_relationship(self):
+        task = self.tcont.serach_task(self.rel_id_string.get())
+        task = None if task.id == self.current_task.id else task
+        if task and self.rel_type_string.get() == "CHILD":
+            self.current_task.childs.append(task.id)
+            task.parents.append(self.current_task.id)
+            self.update_task_frame()
+            self.tcont.save()
+        elif task:
+            self.current_task.parents.append(task.id)
+            task.childs.append(self.current_task.id)
+            self.update_task_frame()
+            self.tcont.save()
 
     def discard_text_changes(self,event=None):
-        print("ok")
         self.description_text.delete("1.0",END)
         self.new_description = self.current_task.description
         self.description_text.insert("1.0",self.new_description)
 
-    def fetch_activities(self,task):
+    def fetch_activities(self):
         for w in self.activity_frame_main.winfo_children():
             w.destroy()
         hcount = 0
-        for activity in task.activities:
+        for activity in self.current_task.activities:
             hcount += activity.hour
         if int(hcount/6) > 24:
             ttk.Label(self.activity_frame_main,text="total time spent: {}d {}h {}m".format(
@@ -373,10 +433,22 @@ class app(Tk):
         else:
             ttk.Label(self.activity_frame_main,text="total time spent: {}h {}m".format(int(hcount/6), int(hcount%6*10)),
                     font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)
-        for activity in task.activities:
+        for activity in self.current_task.activities:
             ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime spent: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
                     font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
             DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10, expand=True)
+    
+    def fetch_rels(self):
+        for w in self.relation_frame.winfo_children():
+            w.destroy()
+        def bind_dclick(task):
+            self.update_task_frame(task=task)
+        for child in self.current_task.childs:
+            task = self.tcont.serach_task(child)
+            rel_frame(self.relation_frame,task," CHILD ",bind_dclick).pack(fill=X, padx=5)
+        for parent in self.current_task.parents:
+            task = self.tcont.serach_task(parent)
+            rel_frame(self.relation_frame,task,"PARTENT", bind_dclick).pack(fill=X, padx=5)
 
     def add_new_tag(self,event):
         if len(self.tags_container.winfo_children()) <= 5 :
@@ -457,23 +529,23 @@ class app(Tk):
     def update_main_frame_day(self,event):
         widget = event.widget
         if len(widget.curselection()) > 0:
-            self.update_task_frame(widget)
+            self.update_task_frame()
             for w in self.main_frame.winfo_children():
                 w.pack_forget()
             self.task_frame.pack(fill=BOTH, expand=True)
 
-    def update_task_frame(self,widget=None,task=None):
+    def update_task_frame(self,task=None):
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         if len(widget.curselection()) > 0 or task:
-            if len(widget.curselection()):
+            if task:
+                self.current_task = task
+            else:
                 if self.tabs.index(self.tabs.select()) == 0:
                     self.current_task = self.task_list_day[widget.curselection()[0]] 
                 elif self.tabs.index(self.tabs.select()) == 1:
                     self.current_task = self.task_list_wip[widget.curselection()[0]]
                 else:
                     self.current_task = self.task_list_old[widget.curselection()[0]]
-            else:
-                self.current_task = task
             self.title_string.set(self.current_task.name)
             self.id_string.set(self.current_task.id)
             self.description_text.config(state=NORMAL)
@@ -507,7 +579,10 @@ class app(Tk):
                 for tag in self.current_task.tags:
                     TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
 
-            self.fetch_activities(self.current_task)        
+            self.rel_type_string.set("")
+            self.rel_id_string.set("")
+            self.fetch_activities()    
+            self.fetch_rels()    
             if self.current_task.get_status() == "NEXT" or self.current_task.get_status() == "PENDING":
                 self.label_state.config(text="state: {} \u2192 {}".format(self.current_task.get_status(),str(self.current_task.schedule.start_date)))
             else:
@@ -527,8 +602,7 @@ class app(Tk):
         self.current_task.description = self.description_text.get("1.0",END)[:-1]
         self.current_task.complete(self.complete_text.get("1.0",END))
         self.complete_frame.pack_forget()
-        widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
-        self.update_task_frame(widget)
+        self.update_task_frame()
         self.tcont.refresh_day_tasks()
         self.fetch_list()
         self.task_frame.pack(fill=BOTH, expand=True)
@@ -596,8 +670,7 @@ class app(Tk):
     def reschedule_task_event(self):
         self.current_task.reschedule(Activity(self.reschedule_text.get("1.0",END)[:-1],int(self.hour_effective_string.get())),int(self.hour_string.get()), start_date = self.calendar.get_date(), is_sticked = bool(self.stick.get()))
         self.reschedule_frame.pack_forget()
-        widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
-        self.update_task_frame(widget)
+        self.update_task_frame()
         self.task_frame.pack(fill=BOTH, expand=True)
         self.tcont.refresh_day_tasks()
         self.fetch_list()

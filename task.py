@@ -5,7 +5,7 @@ from os import path
 import json
 
 #change the version only if some attributes are added to Activity, Schedule or Task classes
-version = "1.0.5"
+version = "1.0.6"
 
 class Activity:
     def __init__(self, description="", hour=1):
@@ -36,6 +36,8 @@ class Task:
         self.due_date = datetime.date.fromisoformat(due_date)
         self.activities = []
         self.tags = tags
+        self.parents = []
+        self.childs = []
         self.completed_date = None
         self.completed_comment = None
 
@@ -97,6 +99,8 @@ class Task:
             "priority" : self.priority if "priotity" in dir(self) else 1, # added in version 1.0.1
             "id" : str(self.id),
             "creation_date" : str(self.creation_date),
+            "childs": self.childs if "childs" in dir(self) else [],
+            "parents": self.parents if "parents" in dir(self) else [],
             "schedule" : {
                 "start_date" : str(self.schedule.start_date),
                 "is_sticked" : self.schedule.is_sticked,
@@ -173,6 +177,8 @@ class TaskContainer():
                 a = Activity(description=tmap["activities"][item]["description"], hour=tmap["activities"][item]["hour"])
                 a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
                 t.activities.append(a)
+            t.childs = tmap["childs"]
+            t.parents = tmap["parents"]
             t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
             t.schedule.hour_old = tmap["schedule"]["hour_old"]
             t.completed_comment = tmap["completed_comment"]
@@ -198,6 +204,15 @@ class TaskContainer():
         # if there are some new completed task save the updated history
         if len(old_task_list) > 0:
             self.__save_old__(old_task_list)
+
+    def serach_task(self,uuid):
+        for task in self.task_list:
+            if task.id == uuid:
+                return task
+        for task in self.old_list:
+            if task.id == uuid:
+                return task
+        return None
 
     def __save_old__(self, old_task_list):
         with open("old","bw") as db_old:
