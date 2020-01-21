@@ -260,7 +260,6 @@ class TaskContainer():
             self.old_list.append(t)
         self.refresh_day_tasks()
         self.save()
-        print(self.old_list)
         self.__save_old__()
 
     def __save_old__(self, old_task_list=None):
