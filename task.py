@@ -210,14 +210,15 @@ class TaskContainer():
         if len(old_task_list) > 0:
             self.__save_old__(old_task_list)
 
-    def serach_task(self,uuid):
+    def serach_task(self,list_uuid):
+        ret_uuid = []
         for task in self.task_list:
-            if task.id == uuid:
-                return task
+            if task.id in list_uuid:
+                ret_uuid.append(task)
         for task in self.old_list:
-            if task.id == uuid:
-                return task
-        return None
+            if task.id in list_uuid:
+                ret_uuid.append(task)
+        return ret_uuid
 
     def export_db(self):
         export_db = {

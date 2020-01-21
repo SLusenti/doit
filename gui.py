@@ -408,7 +408,7 @@ class app(Tk):
         self.tabs.add(self.list_old,text="History")
     
     def add_relationship(self):
-        task = self.tcont.serach_task(self.rel_id_string.get())
+        task = self.tcont.serach_task([self.rel_id_string.get()])[0]
         task = None if task.id == self.current_task.id else task
         if task and self.rel_type_string.get() == "CHILD":
             self.current_task.childs.append(task.id)
@@ -425,39 +425,6 @@ class app(Tk):
         self.description_text.delete("1.0",END)
         self.new_description = self.current_task.description
         self.description_text.insert("1.0",self.new_description)
-
-    def fetch_activities(self):
-        for w in self.activity_frame_main.winfo_children():
-            w.destroy()
-        hcount = 0
-        for activity in self.current_task.activities:
-            hcount += activity.hour
-        if int(hcount/6) > 24:
-            ttk.Label(self.activity_frame_main,text="total time spent: {}d {}h {}m".format(
-                    int(hcount/(6*24)), 
-                    int((hcount-int(hcount/(6*24))*(6*24))/6), 
-                    int((hcount-int(hcount/(6*24))*(6*24))%6*10)
-                ),
-                font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)  
-        else:
-            ttk.Label(self.activity_frame_main,text="total time spent: {}h {}m".format(int(hcount/6), int(hcount%6*10)),
-                    font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)
-        for activity in self.current_task.activities:
-            ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime spent: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
-                    font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
-            DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10, expand=True)
-    
-    def fetch_rels(self):
-        for w in self.relation_frame.winfo_children():
-            w.destroy()
-        def bind_dclick(task):
-            self.update_task_frame(task=task)
-        for child in self.current_task.childs:
-            task = self.tcont.serach_task(child)
-            rel_frame(self.relation_frame,task,"CHILD ",bind_dclick).pack(fill=X, padx=5)
-        for parent in self.current_task.parents:
-            task = self.tcont.serach_task(parent)
-            rel_frame(self.relation_frame,task,"PARENT", bind_dclick).pack(fill=X, padx=5)
 
     def add_new_tag(self,event):
         if len(self.tags_container.winfo_children()) <= 5 :
@@ -498,6 +465,37 @@ class app(Tk):
     
     def update_label_new_time(self,event=None):
         self.hour_new_label.config(text="{}h {}m".format(int(int(self.hour_new_string.get())/6),int(int(self.hour_new_string.get())%6*10)))
+
+    def fetch_activities(self):
+        for w in self.activity_frame_main.winfo_children():
+            w.destroy()
+        hcount = 0
+        for activity in self.current_task.activities:
+            hcount += activity.hour
+        if int(hcount/6) > 24:
+            ttk.Label(self.activity_frame_main,text="total time spent: {}d {}h {}m".format(
+                    int(hcount/(6*24)), 
+                    int((hcount-int(hcount/(6*24))*(6*24))/6), 
+                    int((hcount-int(hcount/(6*24))*(6*24))%6*10)
+                ),
+                font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)  
+        else:
+            ttk.Label(self.activity_frame_main,text="total time spent: {}h {}m".format(int(hcount/6), int(hcount%6*10)),
+                    font="LiberationMono-Bold 10",padding="0 10 0 0").pack(fill=X, padx=10)
+        for activity in self.current_task.activities:
+            ttk.Label(self.activity_frame_main,text="date: {}\t\t\ttime spent: {}h {}m".format(activity.date, int(activity.hour/6), int(activity.hour%6*10)),
+                    font="LiberationMono-Bold 10",padding="0 25 0 10").pack(fill=X, padx=10)
+            DText(self.activity_frame_main,activity.description,font="FreeMono 10",wrap=WORD).pack(fill=X,padx=10, expand=True)
+    
+    def fetch_rels(self):
+        for w in self.relation_frame.winfo_children():
+            w.destroy()
+        def bind_dclick(task):
+            self.update_task_frame(task=task)
+        for task in self.tcont.serach_task(self.current_task.childs):
+            rel_frame(self.relation_frame,task,"CHILD ",bind_dclick).pack(fill=X, padx=5)
+        for task in self.tcont.serach_task(self.current_task.parents):
+            rel_frame(self.relation_frame,task,"PARENT", bind_dclick).pack(fill=X, padx=5)
 
     def fetch_list_event(self,event):
         self.fetch_old()

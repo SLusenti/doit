@@ -3,16 +3,14 @@ python task manager
 
 ## TODO
 
-- creare un readme decente
-- documentare il codice
-- aggiungere filter bar per i task con i segunti filtri
-  - filtro per data di creazione
-  - filtro per data di scadenza
-  - filtro per nome
-  - filtro per id
-  - fitro per ricerca nella descrizione
-  - filtro per tags
-- import buttom <- import il db in formato json
-- export button -> esporta il db in formato json
-- aggiungere nel task.py il metodo per automatizzare l'aggiornamento del db.
+todo:
+- [x] export/import json db
+- [x] relationship between task
+	- update task class with child_tasks and parent_tasks lists
+	- add parent, child button on task_frame
+	- add relationship tab on container.task_frame
+		- clickable list with name,id,status
+- readme
+- how to install
+- comments
 
