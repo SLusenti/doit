@@ -213,11 +213,17 @@ class TaskContainer():
     def serach_task(self,list_uuid):
         ret_uuid = []
         for task in self.task_list:
-            if task.id in list_uuid:
+            if len(ret_uuid) == len(list_uuid):
+                break
+            elif task.id in list_uuid:
                 ret_uuid.append(task)
+    
         for task in self.old_list:
-            if task.id in list_uuid:
+            if len(ret_uuid) == len(list_uuid):
+                break
+            elif task.id in list_uuid:
                 ret_uuid.append(task)
+
         return ret_uuid
 
     def export_db(self):
