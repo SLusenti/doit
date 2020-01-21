@@ -591,6 +591,11 @@ class app(Tk):
                 for tag in self.current_task.tags:
                     TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
 
+            if self.current_task.get_status() == "WAITING":
+                self.complete_button.config(state=DISABLED)
+            else:
+                self.complete_button.config(state=NORMAL)
+
             self.rel_type_string.set("")
             self.rel_id_string.set("")
             self.fetch_activities()    

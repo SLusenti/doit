@@ -5,7 +5,7 @@ from os import path
 import json
 
 #change the version only if some attributes are added to Activity, Schedule or Task classes
-version = "1.0.6"
+version = "1.0.7"
 
 class Activity:
     def __init__(self, description="", hour=1):
@@ -42,7 +42,11 @@ class Task:
         self.completed_comment = None
 
     def get_priority(self):
-        if self.schedule.rescheduled == datetime.date.today() or self.completed_date == datetime.date.today():
+        if len(self.childs) > 0:
+            return -3
+        elif self.schedule.start_date > datetime.date.today():
+            return -2 
+        elif self.schedule.rescheduled == datetime.date.today() or self.completed_date == datetime.date.today():
             return -1
         elif self.schedule.is_today :
             return 0
@@ -50,8 +54,6 @@ class Task:
             return 1
         elif datetime.date.today() >= self.schedule.start_date:
             return (self.due_date - datetime.date.today()).days * self.priority
-        else :
-            return -2
 
     def complete(self, comment: str):
         self.completed_date = datetime.date.today()
@@ -68,8 +70,10 @@ class Task:
     
     def get_status(self):
         status = ""
-        if self.completed_date:
+        if self.get_priority() == -2:
             status = "COMPLETED"
+        elif self.get_priority() == -3:
+            status = "WAITING"
         elif self.get_priority() == -1:
             status = "NEXT"
         elif self.get_priority() > 0 and self.schedule.is_sticked:
@@ -276,7 +280,7 @@ class TaskContainer():
         hcount = 0
         self.day_tasks_list = []
         for task in self.task_list:
-            if task.get_priority() != -2:
+            if task.get_priority() > -2:
                 if task.get_priority() == -1:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour_old
