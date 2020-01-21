@@ -299,7 +299,7 @@ class TaskContainer():
                 hcount += task.schedule.hour
             elif task.get_priority() == -2:
                 self.day_tasks_list.append(task)
-                hcount += task.schedule.hour
+                hcount += task.schedule.hour_old
  
     def _print_task_list(self):
         for task in self.task_list:
