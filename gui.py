@@ -81,9 +81,7 @@ class app(Tk):
     def drow_menu_frame(self):
         def import_fn():
             self.tcont.import_db()
-            self.fetch_list()
-            if len(self.tcont.old_list) > 0:
-                self.fetch_old()
+            self.fetch_list_event()
             self.update_task_frame()
             self.task_frame.pack(fill=BOTH, expand=True)
         menu_frame = Frame(self, bg="gray")
@@ -501,7 +499,7 @@ class app(Tk):
         for task in self.tcont.serach_task(self.current_task.parents):
             rel_frame(self.relation_frame,task,"PARENT", bind_dclick).pack(fill=X, padx=5)
 
-    def fetch_list_event(self,event):
+    def fetch_list_event(self,event=None):
         self.fetch_old()
         self.fetch_list()
 
