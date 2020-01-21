@@ -152,6 +152,7 @@ class TaskContainer():
                 db = pickle.load(db)
                 if db.version != version:
                     self.task_list = self.update_db(db.task_list)
+                    self.old_list = self.update_db(self.old_list)
                     self._del_completed_task()
                     self.refresh_day_tasks()
                     self.save()
