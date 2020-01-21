@@ -593,10 +593,8 @@ class app(Tk):
 
             if self.current_task.get_status() == "WAITING":
                 self.complete_button.config(state=DISABLED)
-                self.reschedule_button.config(state=DISABLED)
             else:
                 self.complete_button.config(state=NORMAL)
-                self.reschedule_button.config(state=NORMAL)
 
             self.rel_type_string.set("")
             self.rel_id_string.set("")
