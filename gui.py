@@ -380,13 +380,13 @@ class app(Tk):
         rel_label.pack(side=LEFT,padx=5)
         rel_entry.pack(side=LEFT,padx=5)
         combo.pack(side=LEFT,padx=10)
-        self.rel_button.pack(side=LEFT, padx=20)
-        rel_button_frame.pack(side=LEFT, padx=30)
+        self.rel_button.pack(side=LEFT, padx=10)
+        rel_button_frame.pack(side=LEFT)
 
         self.reschedule_button = ttk.Button(self.button_frame,text="Reschedule", command=self.reschedule_event)
         self.complete_button = ttk.Button(self.button_frame,text="Complete", command=self.complete_event)
-        self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
-        self.complete_button.pack(side=RIGHT, pady=1)        
+        self.reschedule_button.pack(side=RIGHT, padx=10)
+        self.complete_button.pack(side=RIGHT, padx=10)        
         
         title_label.pack(fill=X,pady=5,padx=10)
         id_label.pack(fill=X,pady=5,padx=10)
@@ -492,6 +492,9 @@ class app(Tk):
         for w in self.relation_frame.winfo_children():
             w.destroy()
         def bind_dclick(task):
+            wlist = self.tabs.winfo_children()
+            for w in wlist:
+                w.selection_clear(0, END)
             self.update_task_frame(task=task)
         for task in self.tcont.serach_task(self.current_task.childs):
             rel_frame(self.relation_frame,task,"CHILD ",bind_dclick).pack(fill=X, padx=5)
@@ -538,9 +541,14 @@ class app(Tk):
 
         widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
         widget.selection_set(0)
+        
 
     def update_main_frame_day(self,event):
         widget = event.widget
+        wlist = self.tabs.winfo_children()
+        wlist.pop(self.tabs.index(self.tabs.select()))
+        for w in wlist:
+            w.selection_clear(0, END)
         if len(widget.curselection()) > 0:
             self.update_task_frame()
             for w in self.main_frame.winfo_children():
@@ -585,7 +593,7 @@ class app(Tk):
             else:
                 self.description_text.config(state=NORMAL)
                 self.complete_task_frame.pack_forget()
-                self.button_frame.pack(pady=20,padx=100,fill=X)
+                self.button_frame.pack(pady=35,padx=60,fill=X)
                 self.tags_task_entry.grid(column=1,row=0)
                 for tag in self.current_task.tags:
                     TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)
