@@ -368,10 +368,9 @@ class app(Tk):
         self.label_completed.pack()
         self.description_completed_text.pack(fill=X)
 
-        self.reschedule_button = ttk.Button(self.task_frame ,text="Reschedule", command=self.reschedule_event)
-        self.complete_button = ttk.Button(self.task_frame ,text="Complete", command=self.complete_event)
 
-        rel_button_frame = Frame(self.task_frame)
+        self.button_frame = Frame(self.task_frame)
+        rel_button_frame = Frame(self.button_frame)
         self.rel_button = ttk.Button(rel_button_frame,text="Relate task", command=self.add_relationship)
         rel_label = Label(rel_button_frame,text="id: " ,font="LiberationMono-Bold 10")
         self.rel_id_string = StringVar()
@@ -382,7 +381,12 @@ class app(Tk):
         rel_entry.pack(side=LEFT,padx=5)
         combo.pack(side=LEFT,padx=10)
         self.rel_button.pack(side=LEFT, padx=20)
+        rel_button_frame.pack(side=LEFT, padx=30)
 
+        self.reschedule_button = ttk.Button(self.button_frame,text="Reschedule", command=self.reschedule_event)
+        self.complete_button = ttk.Button(self.button_frame,text="Complete", command=self.complete_event)
+        self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
+        self.complete_button.pack(side=RIGHT, pady=1)        
         
         title_label.pack(fill=X,pady=5,padx=10)
         id_label.pack(fill=X,pady=5,padx=10)
@@ -390,9 +394,6 @@ class app(Tk):
         tags_frame.pack(fill=X,pady=5,padx=100)
         main_task_frame.pack(padx=100, pady=5, expand=True, fill=BOTH)
         
-        rel_button_frame.pack(side=LEFT, padx=30)
-        self.reschedule_button.pack(side=RIGHT, pady=1,padx=40)
-        self.complete_button.pack(side=RIGHT, pady=1)        
 
     def drow_list(self):
         self.tabs = ttk.Notebook(self.list_frame)
@@ -570,8 +571,7 @@ class app(Tk):
 
             if self.current_task.get_status() == "COMPLETED":
                 self.description_text.config(state=DISABLED)
-                self.reschedule_button.pack_forget()
-                self.complete_button.pack_forget()
+                self.button_frame.pack_forget()
                 self.description_completed_text.config(state=NORMAL)
                 self.description_completed_text.delete("1.0",END)
                 self.description_completed_text.insert("1.0",self.current_task.completed_comment)
@@ -585,8 +585,7 @@ class app(Tk):
             else:
                 self.description_text.config(state=NORMAL)
                 self.complete_task_frame.pack_forget()
-                self.reschedule_button.pack(side=RIGHT, pady=50,padx=40)
-                self.complete_button.pack(side=RIGHT, pady=50)
+                self.button_frame.pack(pady=20,padx=100,fill=X)
                 self.tags_task_entry.grid(column=1,row=0)
                 for tag in self.current_task.tags:
                     TagLabel(self.tags_frame,text=tag,bg="yellow",clickdestroy=True).pack(padx=5,side=LEFT)

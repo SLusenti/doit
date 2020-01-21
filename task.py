@@ -5,7 +5,7 @@ from os import path
 import json
 
 #change the version only if some attributes are added to Activity, Schedule or Task classes
-version = "1.0.7"
+version = "1.0.8"
 
 class Activity:
     def __init__(self, description="", hour=1):
@@ -42,18 +42,21 @@ class Task:
         self.completed_comment = None
 
     def get_priority(self):
-        if len(self.childs) > 0:
-            return -3
-        elif self.schedule.start_date > datetime.date.today():
-            return -2 
-        elif self.schedule.rescheduled == datetime.date.today() or self.completed_date == datetime.date.today():
+        today = datetime.date.today()
+        if self.completed_date and self.completed_comment:
+            return -4
+        elif len(self.childs) > 0:
+            return -3 
+        elif self.schedule.rescheduled == today:
+            return -2
+        elif self.schedule.start_date > today:
             return -1
-        elif self.schedule.is_today :
+        elif self.schedule.is_today:
             return 0
-        elif datetime.date.today() >= self.schedule.start_date and self.schedule.is_sticked:
+        elif today >= self.schedule.start_date and self.schedule.is_sticked:
             return 1
-        elif datetime.date.today() >= self.schedule.start_date:
-            return (self.due_date - datetime.date.today()).days * self.priority
+        elif today >= self.schedule.start_date:
+            return (self.due_date - today).days * self.priority
 
     def complete(self, comment: str):
         self.completed_date = datetime.date.today()
@@ -70,20 +73,20 @@ class Task:
     
     def get_status(self):
         status = ""
-        if self.get_priority() == -2:
+        if self.get_priority() == -4:
             status = "COMPLETED"
         elif self.get_priority() == -3:
             status = "WAITING"
-        elif self.get_priority() == -1:
-            status = "NEXT"
-        elif self.get_priority() > 0 and self.schedule.is_sticked:
-            status = "STICKED"
-        elif self.get_priority() > 0:
-            status = "SCHEDULED"
         elif self.get_priority() == -2:
+            status = "NEXT"
+        elif self.get_priority() == -1:
             status = "PENDING"
         elif self.get_priority() == 0:
             status = "TODAY"
+        elif self.get_priority() == 1 and self.schedule.is_sticked:
+            status = "STICKED"
+        elif self.get_priority() > 0:
+            status = "SCHEDULED"
         return status
     
     def __gt__(self, value):
@@ -281,7 +284,7 @@ class TaskContainer():
         hcount = 0
         self.day_tasks_list = []
         for task in self.task_list:
-            if task.get_priority() > -2:
+            if task.get_priority() > -1:
                 if task.get_priority() == -1:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour_old
@@ -291,7 +294,13 @@ class TaskContainer():
                 elif hcount + task.schedule.hour < 40:
                     self.day_tasks_list.append(task)
                     hcount += task.schedule.hour
-
+            elif task.get_priority() == -4 and task.completed_date == datetime.date.today():
+                self.day_tasks_list.append(task)
+                hcount += task.schedule.hour
+            elif task.get_priority() == -2:
+                self.day_tasks_list.append(task)
+                hcount += task.schedule.hour
+ 
     def _print_task_list(self):
         for task in self.task_list:
             print(task)
