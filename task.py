@@ -151,13 +151,13 @@ class TaskContainer():
         self.task_list = []
 
         # load history
-        if path.exists("./old"):
-            with open("old","rb") as db_old:
+        if path.exists("./old_tasks_base"):
+            with open("./old_tasks_base","rb") as db_old:
                 self.old_list = pickle.load(db_old)
         
         # load the data
-        if path.exists("./db"):
-            with open("db","rb") as db:
+        if path.exists("./tasks_base"):
+            with open("./tasks_base","rb") as db:
                 db = pickle.load(db)
                 if db.version != version:
                     self.task_list = self.update_db(db.task_list)
