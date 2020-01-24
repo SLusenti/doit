@@ -171,12 +171,12 @@ class app(Tk):
         
         calendar_label.grid(column=0,row=0)
         self.calendar.grid(column=0,row=1,rowspan=2)
-        hour_label.grid(column=1,row=1, padx=50)
-        hour_box.grid(column=2,row=1)
-        self.hour_label.grid(column=3,row=1,padx=5)
-        hour_eff_label.grid(column=1,row=2, padx=50)
-        hour_eff_box.grid(column=2,row=2)
-        self.hour_eff_label.grid(column=3,row=2,padx=5)
+        hour_eff_label.grid(column=1,row=1, padx=50)
+        hour_eff_box.grid(column=2,row=1)
+        self.hour_eff_label.grid(column=3,row=1,padx=5)
+        hour_label.grid(column=1,row=2, padx=50)
+        hour_box.grid(column=2,row=2)
+        self.hour_label.grid(column=3,row=2,padx=5)
         stick_box.grid(column=0,row=3, pady=5)
 
         cancel_button = ttk.Button(self.reschedule_frame ,text="cancel", command=self.cancel_event)
