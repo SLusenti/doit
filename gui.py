@@ -67,7 +67,7 @@ class app(Tk):
         self.drow_task_frame()
         self.drow_reschedule_frame()
         self.drow_new_task_frame()
-        self.drow_complete_frame()
+        self.drow_complete_frame() 
 
         if len(self.tcont.task_list) > 0:
             self.fetch_list()
@@ -78,8 +78,11 @@ class app(Tk):
         if len(self.tcont.old_list) > 0:
             self.fetch_old()
 
+        self.tcont.export_db("./snapshot_db.json")
+
     def drow_menu_frame(self):
         def import_fn():
+            self.tcont.export_db("./snapshot_db.json")
             self.tcont.import_db()
             self.fetch_list_event()
             self.update_task_frame()
@@ -407,16 +410,16 @@ class app(Tk):
         self.tabs.add(self.list_old,text="History")
     
     def add_relationship(self):
-        task = self.tcont.serach_task([self.rel_id_string.get()])[0]
+        task = self.tcont.search_task([self.rel_id_string.get()])[0]
         task = None if task.id == self.current_task.id else task
         if task and self.rel_type_string.get() == "CHILD":
-            self.current_task.childs.append(task.id)
-            task.parents.append(self.current_task.id)
+            self.current_task.childs.append(task)
+            task.parents.append(self.current_task)
             self.update_task_frame()
             self.tcont.save()
         elif task and self.rel_type_string.get() == "PARENT":
-            self.current_task.parents.append(task.id)
-            task.childs.append(self.current_task.id)
+            self.current_task.parents.append(task)
+            task.childs.append(self.current_task)
             self.update_task_frame()
             self.tcont.save()
 
@@ -494,9 +497,9 @@ class app(Tk):
             for w in wlist:
                 w.selection_clear(0, END)
             self.update_task_frame(task=task)
-        for task in self.tcont.serach_task(self.current_task.childs):
+        for task in self.current_task.childs:
             rel_frame(self.relation_frame,task,"CHILD ",bind_dclick).pack(fill=X, padx=5)
-        for task in self.tcont.serach_task(self.current_task.parents):
+        for task in self.current_task.parents:
             rel_frame(self.relation_frame,task,"PARENT", bind_dclick).pack(fill=X, padx=5)
 
     def fetch_list_event(self,event=None):
@@ -672,7 +675,9 @@ class app(Tk):
         self.tcont.save()
         self.fetch_list()
         self.new_task_frame.pack_forget()
-        widget = self.tabs.winfo_children()[self.tabs.index(self.tabs.select())]
+        wlist = self.tabs.winfo_children()
+        for w in wlist:
+            w.selection_clear(0, END)
         self.update_task_frame(task=self.tcont.task_list[-1])     
         self.task_frame.pack(fill=BOTH, expand=True)
 

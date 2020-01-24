@@ -5,7 +5,7 @@ from os import path
 import json
 
 #change the version only if some attributes are added to Activity, Schedule or Task classes
-version = "1.0.8"
+version = "1.0.10"
 
 class Activity:
     def __init__(self, description="", hour=1):
@@ -41,11 +41,17 @@ class Task:
         self.completed_date = None
         self.completed_comment = None
 
+    def check_childs(self):
+        for child in self.childs:
+            if child.get_status() != "COMPLETED":
+                return True
+        return False
+
     def get_priority(self):
         today = datetime.date.today()
         if self.completed_date and self.completed_comment:
             return -4
-        elif len(self.childs) > 0:
+        elif self.check_childs():
             return -3 
         elif self.schedule.rescheduled == today:
             return -2
@@ -106,8 +112,8 @@ class Task:
             "priority" : self.priority if "priotity" in dir(self) else 1, # added in version 1.0.1
             "id" : str(self.id),
             "creation_date" : str(self.creation_date),
-            "childs": self.childs if "childs" in dir(self) else [],
-            "parents": self.parents if "parents" in dir(self) else [],
+            "childs": [ child.id for child in self.childs ] if "childs" in dir(self) else [],
+            "parents": [ parent.id for parent in self.parents ] if "parents" in dir(self) else [],
             "schedule" : {
                 "start_date" : str(self.schedule.start_date),
                 "is_sticked" : self.schedule.is_sticked,
@@ -190,8 +196,8 @@ class TaskContainer():
             a = Activity(description=tmap["activities"][item]["description"], hour=tmap["activities"][item]["hour"])
             a.date = datetime.date.fromisoformat(tmap["activities"][item]["date"])
             t.activities.append(a)
-        t.childs = tmap["childs"]
-        t.parents = tmap["parents"]
+        t.childs = self.search_task(tmap["childs"])
+        t.parents = self.search_task(tmap["parents"])
         t.schedule.rescheduled = datetime.date.fromisoformat(tmap["schedule"]["rescheduled"]) if tmap["schedule"]["rescheduled"] else None
         t.schedule.hour_old = tmap["schedule"]["hour_old"]
         t.completed_comment = tmap["completed_comment"]
@@ -200,7 +206,7 @@ class TaskContainer():
         
 
     def save(self):
-        with open("db","bw") as db:
+        with open("tasks_base","bw") as db:
             c = container(self.task_list,self.day_tasks_list)
             pickle.dump(c, db)
 
@@ -218,7 +224,7 @@ class TaskContainer():
         if len(old_task_list) > 0:
             self.__save_old__(old_task_list)
 
-    def serach_task(self,list_uuid):
+    def search_task(self,list_uuid):
         ret_uuid = []
         for task in self.task_list:
             if len(ret_uuid) == len(list_uuid):
@@ -234,28 +240,28 @@ class TaskContainer():
 
         return ret_uuid
 
-    def export_db(self):
+    def export_db(self,file_name="./backup.json"):
         export_db = {
-            "db": [],
-            "old": []
+            "tasks_base": [],
+            "old_tasks": []
         }
         for task in self.task_list:
-            export_db["db"].append(task.to_map())
+            export_db["tasks_base"].append(task.to_map())
         for task in self.old_list:
-            export_db["old"].append(task.to_map())
-        with open("./backup.json","w") as jdb:
+            export_db["old_tasks"].append(task.to_map())
+        with open(file_name,"w") as jdb:
             jdb.write(json.dumps(export_db))
     
-    def import_db(self):
+    def import_db(self,file_name="./backup.json"):
         import_db = {}
-        with open("./backup.json","r") as jdb:
+        with open(file_name,"r") as jdb:
             import_db = json.loads(jdb.read())
         self.task_list = []
-        for tmap in import_db["db"]:
+        for tmap in import_db["tasks_base"]:
             t = self._to_task(tmap)
             self.task_list.append(t)
         self.old_list = []
-        for tmap in import_db["old"]:
+        for tmap in import_db["old_tasks"]:
             t = self._to_task(tmap)
             self.old_list.append(t)
         self.refresh_day_tasks()
@@ -265,7 +271,7 @@ class TaskContainer():
     def __save_old__(self, old_task_list=None):
         if old_task_list:
             self.old_list += old_task_list
-        with open("old","bw") as db_old:
+        with open("old_tasks_base","bw") as db_old:
             pickle.dump(self.old_list, db_old)
 
     def add_task(self, task: Task):
