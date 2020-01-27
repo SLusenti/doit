@@ -648,6 +648,7 @@ class app(Tk):
         self.priority_new_string.set(1)
         self.hour_new_string.set(1)
         self.tags_new_task_string.set("")
+        self.hour_new_label.config(text="{}h {}m".format(int(int(self.hour_new_string.get())/6),int(int(self.hour_new_string.get())%6*10)))
         for w in self.tags_container.winfo_children():
             w.destroy()
         for w in self.main_frame.winfo_children():
